@@ -30,7 +30,7 @@ func (h *ProductHandler) GetProduct(ctx echo.Context) error {
 	var req dto.GetProductByIDRequest
 
 	if err := ctx.Bind(&req); err != nil {
-		return ctx.JSON(http.StatusInternalServerError, response.ErrorResponse(http.StatusInternalServerError, err.Error()))
+		return ctx.JSON(http.StatusBadRequest, response.ErrorResponse(http.StatusBadRequest, err.Error()))
 	}
 
 	product, err := h.productService.GetById(ctx.Request().Context(), req.ID)
@@ -45,7 +45,7 @@ func (h *ProductHandler) CreateProduct(ctx echo.Context) error {
 	var req dto.CreateProductRequest
 
 	if err := ctx.Bind(&req); err != nil {
-		return ctx.JSON(http.StatusInternalServerError, response.ErrorResponse(http.StatusInternalServerError, err.Error()))
+		return ctx.JSON(http.StatusBadRequest, response.ErrorResponse(http.StatusBadRequest, err.Error()))
 	}
 
 	err := h.productService.Create(ctx.Request().Context(), req)
@@ -60,7 +60,7 @@ func (h *ProductHandler) UpdateProduct(ctx echo.Context) error {
 	var req dto.UpdateProductRequest
 
 	if err := ctx.Bind(&req); err != nil {
-		return ctx.JSON(http.StatusInternalServerError, response.ErrorResponse(http.StatusInternalServerError, err.Error()))
+		return ctx.JSON(http.StatusBadRequest, response.ErrorResponse(http.StatusBadRequest, err.Error()))
 	}
 
 	err := h.productService.Update(ctx.Request().Context(), req)
@@ -75,7 +75,7 @@ func (h *ProductHandler) DeleteProduct(ctx echo.Context) error {
 	var req dto.DeleteProductRequest
 
 	if err := ctx.Bind(&req); err != nil {
-		return ctx.JSON(http.StatusInternalServerError, response.ErrorResponse(http.StatusInternalServerError, err.Error()))
+		return ctx.JSON(http.StatusBadRequest, response.ErrorResponse(http.StatusBadRequest, err.Error()))
 	}
 
 	product, err := h.productService.GetById(ctx.Request().Context(), req.ID)
