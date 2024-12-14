@@ -9,7 +9,8 @@ import (
 )
 
 type ProductService interface {
-	GetAll(ctx context.Context) ([]entity.Product, error)
+	GetAllPending(ctx context.Context) ([]entity.Product, error)
+	GetByIdPending(ctx context.Context, id int64) (*entity.Product, error)
 	GetById(ctx context.Context, id int64) (*entity.Product, error)
 	Create(ctx context.Context, req dto.CreateProductRequest) error
 	Update(ctx context.Context, req dto.UpdateProductRequest) error
@@ -24,8 +25,12 @@ func NewProductService(productRepository repository.ProductRepository) ProductSe
 	return &productService{productRepository}
 }
 
-func (s productService) GetAll(ctx context.Context) ([]entity.Product, error) {
-	return s.productRepository.GetAll(ctx)
+func (s productService) GetAllPending(ctx context.Context) ([]entity.Product, error) {
+	return s.productRepository.GetAllPending(ctx)
+}
+
+func (s productService) GetByIdPending(ctx context.Context, id int64) (*entity.Product, error) {
+	return s.productRepository.GetByIdPending(ctx, id)
 }
 
 func (s productService) GetById(ctx context.Context, id int64) (*entity.Product, error) {

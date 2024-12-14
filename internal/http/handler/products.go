@@ -17,13 +17,28 @@ func NewProductHandler(productService service.ProductService) ProductHandler {
 	return ProductHandler{productService}
 }
 
-func (h *ProductHandler) GetProducts(ctx echo.Context) error {
-	products, err := h.productService.GetAll(ctx.Request().Context())
+func (h *ProductHandler) GetSubmissions(ctx echo.Context) error {
+	products, err := h.productService.GetAllPending(ctx.Request().Context())
 	if err != nil {
 		return ctx.JSON(http.StatusInternalServerError, response.ErrorResponse(http.StatusInternalServerError, err.Error()))
 	}
 
 	return ctx.JSON(http.StatusOK, response.SuccessResponse("Successfully showing all products", products))
+}
+
+func (h *ProductHandler) GetSubmission(ctx echo.Context) error {
+	var req dto.GetProductByIDRequest
+
+	if err := ctx.Bind(&req); err != nil {
+		return ctx.JSON(http.StatusBadRequest, response.ErrorResponse(http.StatusBadRequest, err.Error()))
+	}
+
+	product, err := h.productService.GetByIdPending(ctx.Request().Context(), req.ID)
+	if err != nil {
+		return ctx.JSON(http.StatusInternalServerError, response.ErrorResponse(http.StatusInternalServerError, err.Error()))
+	}
+
+	return ctx.JSON(http.StatusOK, response.SuccessResponse("Successfully showing a product", product))
 }
 
 func (h *ProductHandler) GetProduct(ctx echo.Context) error {
