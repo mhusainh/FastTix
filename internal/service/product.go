@@ -62,11 +62,11 @@ func (s productService) Update(ctx context.Context, req dto.UpdateProductRequest
 	if req.ProductAddress != "" {
 		product.ProductAddress = req.ProductAddress
 	}
-	if req.ProductTime != nil {
-		product.ProductTime = *req.ProductTime
+	if req.ProductTime != "" {
+		product.ProductTime = req.ProductTime
 	}
-	if req.ProductDate != nil {
-		product.ProductDate = *req.ProductDate
+	if req.ProductDate != "" {
+		product.ProductDate = req.ProductDate
 	}
 	if req.ProductPrice != 0 {
 		product.ProductPrice = req.ProductPrice

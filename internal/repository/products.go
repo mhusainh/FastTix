@@ -26,7 +26,7 @@ func NewProductRepository(db *gorm.DB) ProductRepository{
 
 func (r *productRepository) GetAllPending(ctx context.Context) ([]entity.Product, error){
 	result := make([]entity.Product, 0)
-	if err := r.db.WithContext(ctx).Where("status = ?", "pending").Find(&result).Error; err != nil{
+	if err := r.db.WithContext(ctx).Where("product_status = ?", "pending").Find(&result).Error; err != nil{
 		return nil, err
 	}
 	return result, nil
@@ -34,7 +34,7 @@ func (r *productRepository) GetAllPending(ctx context.Context) ([]entity.Product
 
 func (r *productRepository) GetByIdPending(ctx context.Context, id int64) (*entity.Product, error){
 	result := new(entity.Product)
-	if err := r.db.WithContext(ctx).Where("id = ? AND status = ?", id, "pending").First(&result).Error; err != nil {
+	if err := r.db.WithContext(ctx).Where("id = ? AND product_status = ?", id, "pending").First(&result).Error; err != nil {
 		return nil, err
 	}
 	return result, nil

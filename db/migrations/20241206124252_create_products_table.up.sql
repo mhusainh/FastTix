@@ -9,6 +9,7 @@ CREATE TABLE IF NOT EXISTS products (
     product_price DECIMAL(13, 2) NOT NULL,
     product_description TEXT NOT NULL,
     product_status ENUM('pending', 'ditolak', 'diterima') NOT NULL,
+    product_category VARCHAR(255) NOT NULL,
     user_id INT NOT NULL,
     CONSTRAINT fk_user_products FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE ON UPDATE CASCADE,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,

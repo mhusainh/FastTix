@@ -11,12 +11,12 @@ func PublicRoutes(product handler.ProductHandler) []route.Route {
 	return []route.Route{
 		{
 			Method: http.MethodGet,
-			Path: "/Submissions",
+			Path: "/submissions",
 			Handler: product.GetSubmissions,
 		},
 		{
 			Method: http.MethodGet,
-			Path: "/Submission",
+			Path: "/submission",
 			Handler: product.GetSubmission,
 		},
 		{

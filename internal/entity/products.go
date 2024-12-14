@@ -6,8 +6,8 @@ type Product struct {
 	ID                 int64     `json:"id"`
 	ProductName        string    `json:"product_name"`
 	ProductAddress     string    `json:"product_address"`
-	ProductTime        time.Time `json:"product_time"`
-	ProductDate        time.Time `json:"product_date"`
+	ProductTime        string `json:"product_time"`
+	ProductDate        string `json:"product_date"`
 	ProductPrice       float64   `json:"product_price"`
 	ProductDescription string    `json:"product_description"`
 	ProductStatus      string    `json:"product_status"`
