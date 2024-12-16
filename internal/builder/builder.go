@@ -13,31 +13,39 @@ import (
 func BuilderPublicRoutes(cfg *config.Config, db *gorm.DB) []route.Route {
 	//repository
 	productRepository := repository.NewProductRepository(db)
+	userRepository := repository.NewUserRepository(db)
 	//end
 
 	//service
-	productService := service.NewProductService(cfg, productRepository)
+	tokenService := service.NewTokenService(cfg.JWTConfig.SecretKey)
+	productService := service.NewProductService(productRepository)
+	userService := service.NewUserService(tokenService, cfg, userRepository)
 	//end
 
 	//handler
 	productHandler := handler.NewProductHandler(productService)
+	userHandler := handler.NewUserHandler(tokenService, userService)
 	//end
 
-	return router.PublicRoutes(productHandler)
+	return router.PublicRoutes(userHandler, productHandler)
 }
 
 func BuilderPrivateRoutes(cfg *config.Config, db *gorm.DB) []route.Route {
 	//repository
-	_ = repository.NewProductRepository(db)
+	productRepository := repository.NewProductRepository(db)
+	userRepository := repository.NewUserRepository(db)
 	//end
 
 	//service
-	// _ = service.NewProductService()
+	tokenService := service.NewTokenService(cfg.JWTConfig.SecretKey)
+	productService := service.NewProductService(productRepository)
+	userService := service.NewUserService(tokenService, cfg, userRepository)
 	//end
 
 	//handler
-	// _ = handler.NewProductHandler()
+	productHandler := handler.NewProductHandler(productService)
+	userHandler := handler.NewUserHandler(tokenService, userService)
 	//end
 
-	return nil
+	return router.PrivateRoutes(productHandler, userHandler)
 }

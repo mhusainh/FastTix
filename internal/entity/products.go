@@ -11,9 +11,9 @@ type Product struct {
 	ProductPrice          float64   `json:"product_price"`
 	ProductDescription    string    `json:"product_description"`
 	ProductCategory       string    `json:"product_category"`
+	ProductQuantity       int       `json:"product_quantity"`
+	ProductType           string    `json:"product_type"`
 	ProductStatus         string    `json:"product_status"`
-	VerifySubmissionToken string    `json:"verify_submission_token"`
-	IsVerified            int     `json:"is_verified"`
 	UserID                int64     `json:"user_id"`
 	CreatedAt             time.Time `json:"created_at"`
 	UpdatedAt             time.Time `json:"updated_at"`

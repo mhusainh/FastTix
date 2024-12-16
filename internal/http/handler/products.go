@@ -3,7 +3,9 @@ package handler
 import (
 	"net/http"
 
+	"github.com/golang-jwt/jwt/v5"
 	"github.com/labstack/echo/v4"
+	"github.com/mhusainh/FastTix/internal/entity"
 	"github.com/mhusainh/FastTix/internal/http/dto"
 	"github.com/mhusainh/FastTix/internal/service"
 	"github.com/mhusainh/FastTix/pkg/response"
@@ -58,12 +60,24 @@ func (h *ProductHandler) GetProduct(ctx echo.Context) error {
 
 func (h *ProductHandler) CreateProduct(ctx echo.Context) error {
 	var req dto.CreateProductRequest
+	user := ctx.Get("user")
+    if user == nil {
+        return ctx.JSON(http.StatusUnauthorized, response.ErrorResponse(http.StatusUnauthorized, "User not authenticated"))
+    }
+
+    claims, ok := user.(*jwt.Token)
+    if !ok {
+        return ctx.JSON(http.StatusUnauthorized, response.ErrorResponse(http.StatusUnauthorized, "Invalid token"))
+    }
+
+    // Extract claims
+    customClaims := claims.Claims.(*entity.JWTCustomClaims)
 
 	if err := ctx.Bind(&req); err != nil {
 		return ctx.JSON(http.StatusBadRequest, response.ErrorResponse(http.StatusBadRequest, err.Error()))
 	}
 
-	err := h.productService.Create(ctx.Request().Context(), req)
+	err := h.productService.Create(ctx.Request().Context(), req, customClaims)
 	if err != nil {
 		return ctx.JSON(http.StatusInternalServerError, response.ErrorResponse(http.StatusInternalServerError, err.Error()))
 	}
@@ -104,19 +118,4 @@ func (h *ProductHandler) DeleteProduct(ctx echo.Context) error {
 	}
 
 	return ctx.JSON(http.StatusOK, response.SuccessResponse("Successfully delete a product", nil))
-}
-
-func (h *ProductHandler) VerifySubmission(ctx echo.Context) error {
-	var req dto.VerifySubmissionRequest
-	
-	if err := ctx.Bind(&req); err != nil {
-		return ctx.JSON(http.StatusBadRequest, response.ErrorResponse(http.StatusBadRequest, err.Error()))
-	}
-
-	err := h.productService.VerifySubmission(ctx.Request().Context(), req)
-	if err != nil {
-		return ctx.JSON(http.StatusInternalServerError, response.ErrorResponse(http.StatusInternalServerError, err.Error()))
-	}
-
-	return ctx.JSON(http.StatusOK, response.SuccessResponse("Successfully verify a product", nil))
 }

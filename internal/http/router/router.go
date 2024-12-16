@@ -7,47 +7,79 @@ import (
 	"github.com/mhusainh/FastTix/pkg/route"
 )
 
-func PublicRoutes(product handler.ProductHandler) []route.Route {
+var (
+	adminOnly = []string{"Administrator"}
+
+	allRoles = []string{"Administrator", "User"}
+)
+
+func PublicRoutes(
+	userHandler handler.UserHandler, 
+	productHandler handler.ProductHandler,
+	) []route.Route {
 	return []route.Route{
 		{
 			Method: http.MethodGet,
 			Path: "/submissions",
-			Handler: product.GetSubmissions,
+			Handler: productHandler.GetSubmissions,
 		},
 		{
-			Method: http.MethodGet,
-			Path: "/submission",
-			Handler: product.GetSubmission,
+			Method:  http.MethodPost,
+			Path:    "/login",
+			Handler: userHandler.Login,
 		},
 		{
-			Method: http.MethodGet,
-			Path: "/verify-submission/:token",
-			Handler: product.VerifySubmission,
+			Method:  http.MethodPost,
+			Path:    "/register",
+			Handler: userHandler.Register,
 		},
 		{
-			Method: http.MethodGet,
-			Path: "/products/:id",
-			Handler: product.GetProduct,
+			Method:  http.MethodPost,
+			Path:    "/request-reset-password",
+			Handler: userHandler.ResetPasswordRequest,
 		},
 		{
-			Method: http.MethodPost,
-			Path: "/products",
-			Handler: product.CreateProduct,
+			Method:  http.MethodPost,
+			Path:    "/reset-password/:token",
+			Handler: userHandler.ResetPassword,
 		},
 		{
-			Method: http.MethodPut,
-			Path: "/products/:id",
-			Handler: product.UpdateProduct,
-		},
-		{
-			Method: http.MethodDelete,
-			Path: "/products/:id",
-			Handler: product.DeleteProduct,
+			Method:  http.MethodGet,
+			Path:    "/verify-email/:token",
+			Handler: userHandler.VerifyEmail,
 		},
 	}
 }
 
-func PrivateRoutes(product handler.ProductHandler) []route.Route{
+func PrivateRoutes(
+	productHandler handler.ProductHandler,
+	userHandler handler.UserHandler,
+	) []route.Route{
 	return []route.Route{
+		{
+			Method: http.MethodGet,
+			Path: "/submissions/:id",
+			Handler: productHandler.GetSubmission,
+		},
+		{
+			Method: http.MethodGet,
+			Path: "/products/:id",
+			Handler: productHandler.GetProduct,
+		},
+		{
+			Method: http.MethodPost,
+			Path: "/products",
+			Handler: productHandler.CreateProduct,
+		},
+		{
+			Method: http.MethodPut,
+			Path: "/products/:id",
+			Handler: productHandler.UpdateProduct,
+		},
+		{
+			Method: http.MethodDelete,
+			Path: "/products/:id",
+			Handler: productHandler.DeleteProduct,
+		},
 	}
 }

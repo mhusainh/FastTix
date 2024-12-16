@@ -3,10 +3,14 @@ package entity
 import "github.com/golang-jwt/jwt/v5"
 
 type JWTCustomClaims struct {
-	Username string `json:"username"`
+	ID       int64  `json:"id"`
 	FullName string `json:"full_name"`
-	Gender   string `json:"gender"`
 	Email    string `json:"email"`
 	Role     string `json:"role"`
+	jwt.RegisteredClaims
+}
+
+type ResetPasswordClaims struct {
+	Email string `json:"email"`
 	jwt.RegisteredClaims
 }
