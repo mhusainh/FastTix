@@ -21,6 +21,11 @@ func PublicRoutes(product handler.ProductHandler) []route.Route {
 		},
 		{
 			Method: http.MethodGet,
+			Path: "/verify-submission/:token",
+			Handler: product.VerifySubmission,
+		},
+		{
+			Method: http.MethodGet,
 			Path: "/products/:id",
 			Handler: product.GetProduct,
 		},

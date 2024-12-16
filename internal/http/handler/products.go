@@ -105,3 +105,18 @@ func (h *ProductHandler) DeleteProduct(ctx echo.Context) error {
 
 	return ctx.JSON(http.StatusOK, response.SuccessResponse("Successfully delete a product", nil))
 }
+
+func (h *ProductHandler) VerifySubmission(ctx echo.Context) error {
+	var req dto.VerifySubmissionRequest
+	
+	if err := ctx.Bind(&req); err != nil {
+		return ctx.JSON(http.StatusBadRequest, response.ErrorResponse(http.StatusBadRequest, err.Error()))
+	}
+
+	err := h.productService.VerifySubmission(ctx.Request().Context(), req)
+	if err != nil {
+		return ctx.JSON(http.StatusInternalServerError, response.ErrorResponse(http.StatusInternalServerError, err.Error()))
+	}
+
+	return ctx.JSON(http.StatusOK, response.SuccessResponse("Successfully verify a product", nil))
+}

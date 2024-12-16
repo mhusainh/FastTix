@@ -9,6 +9,14 @@ type Config struct {
 	ENV         string      `env:"ENV" envDefault:"dev"`
 	PORT        string      `env:"PORT" envDefault:"8081"`
 	MySQLConfig MySQLConfig `envPrefix:"MYSQL_"`
+	SMTPConfig  SMTPConfig  `envPrefix:"SMTP_"`
+}
+
+type SMTPConfig struct {
+	Host     string `env:"HOST" envDefault:"localhost"`
+	Port     int `env:"PORT" envDefault:"587"`
+	Username string `env:"USERNAME"`
+	Password string `env:"PASSWORD"`
 }
 
 type MySQLConfig struct {

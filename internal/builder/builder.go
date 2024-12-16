@@ -16,7 +16,7 @@ func BuilderPublicRoutes(cfg *config.Config, db *gorm.DB) []route.Route {
 	//end
 
 	//service
-	productService := service.NewProductService(productRepository)
+	productService := service.NewProductService(cfg, productRepository)
 	//end
 
 	//handler

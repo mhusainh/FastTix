@@ -11,6 +11,7 @@ type CreateProductRequest struct {
 	ProductDate        string `json:"product_date" validate:"required"`
 	ProductPrice       float64   `json:"product_price" validate:"required"`
 	ProductDescription string    `json:"product_description" validate:"required"`
+	ProductCategory    string    `json:"product_category" validate:"required"`
 	ProductStatus      string    `json:"product_status" validate:"required"`
 	UserID             int64     `json:"user_id" validate:"required"`
 }
@@ -23,10 +24,15 @@ type UpdateProductRequest struct {
 	ProductDate        string `json:"product_date" validate:"required"`
 	ProductPrice       float64   `json:"product_price" validate:"required"`
 	ProductDescription string    `json:"product_description" validate:"required"`
+	ProductCategory    string    `json:"product_category" validate:"required"`
 	UserID             int64     `json:"user_id" validate:"required"`
 }
 
 
 type DeleteProductRequest struct{
 	ID int64 `param:"id" validate:"required"`
+}
+
+type VerifySubmissionRequest struct{
+	Token string `param:"token" validate:"required"`
 }

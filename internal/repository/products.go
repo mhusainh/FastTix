@@ -14,6 +14,7 @@ type ProductRepository interface {
 	Create(ctx context.Context, product *entity.Product) error
 	Update(ctx context.Context, product *entity.Product) error
 	Delete(ctx context.Context, product *entity.Product) error
+	GetByVerifySubmissionToken(ctx context.Context, token string) (*entity.Product, error)
 }
 
 type productRepository struct {
@@ -58,4 +59,12 @@ func (r *productRepository) Update(ctx context.Context, product *entity.Product)
 
 func (r *productRepository) Delete(ctx context.Context, product *entity.Product) error {
 	return r.db.WithContext(ctx).Delete(&product).Error
+}
+
+func (r *productRepository) GetByVerifySubmissionToken(ctx context.Context, token string) (*entity.Product, error) {
+	result := new(entity.Product)
+	if err := r.db.WithContext(ctx).Where("verify_submission_token = ?", token).First(&result).Error; err != nil {
+		return nil, err
+	}
+	return result, nil
 }
