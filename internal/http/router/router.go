@@ -16,12 +16,13 @@ var (
 func PublicRoutes(
 	userHandler handler.UserHandler, 
 	productHandler handler.ProductHandler,
+	submission handler.SubmissionHandler,
 	) []route.Route {
 	return []route.Route{
 		{
 			Method: http.MethodGet,
 			Path: "/submissions",
-			Handler: productHandler.GetSubmissions,
+			Handler: submission.GetSubmissions,
 		},
 		{
 			Method:  http.MethodPost,
@@ -54,12 +55,13 @@ func PublicRoutes(
 func PrivateRoutes(
 	productHandler handler.ProductHandler,
 	userHandler handler.UserHandler,
+	submission handler.SubmissionHandler,
 	) []route.Route{
 	return []route.Route{
 		{
 			Method: http.MethodGet,
 			Path: "/submissions/:id",
-			Handler: productHandler.GetSubmission,
+			Handler: submission.GetSubmission,
 		},
 		{
 			Method: http.MethodGet,

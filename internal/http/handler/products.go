@@ -3,9 +3,7 @@ package handler
 import (
 	"net/http"
 
-	"github.com/golang-jwt/jwt/v5"
 	"github.com/labstack/echo/v4"
-	"github.com/mhusainh/FastTix/internal/entity"
 	"github.com/mhusainh/FastTix/internal/http/dto"
 	"github.com/mhusainh/FastTix/internal/service"
 	"github.com/mhusainh/FastTix/pkg/response"
@@ -13,34 +11,23 @@ import (
 
 type ProductHandler struct {
 	productService service.ProductService
+	tokenService   service.TokenService
 }
 
-func NewProductHandler(productService service.ProductService) ProductHandler {
-	return ProductHandler{productService}
+func NewProductHandler(
+	productService service.ProductService,
+	tokenService service.TokenService,
+) ProductHandler {
+	return ProductHandler{productService, tokenService}
 }
 
-func (h *ProductHandler) GetSubmissions(ctx echo.Context) error {
-	products, err := h.productService.GetAllPending(ctx.Request().Context())
+func (h *ProductHandler) GetProducts(ctx echo.Context) error {
+	products, err := h.productService.GetAll(ctx.Request().Context())
 	if err != nil {
 		return ctx.JSON(http.StatusInternalServerError, response.ErrorResponse(http.StatusInternalServerError, err.Error()))
 	}
 
 	return ctx.JSON(http.StatusOK, response.SuccessResponse("Successfully showing all products", products))
-}
-
-func (h *ProductHandler) GetSubmission(ctx echo.Context) error {
-	var req dto.GetProductByIDRequest
-
-	if err := ctx.Bind(&req); err != nil {
-		return ctx.JSON(http.StatusBadRequest, response.ErrorResponse(http.StatusBadRequest, err.Error()))
-	}
-
-	product, err := h.productService.GetByIdPending(ctx.Request().Context(), req.ID)
-	if err != nil {
-		return ctx.JSON(http.StatusInternalServerError, response.ErrorResponse(http.StatusInternalServerError, err.Error()))
-	}
-
-	return ctx.JSON(http.StatusOK, response.SuccessResponse("Successfully showing a product", product))
 }
 
 func (h *ProductHandler) GetProduct(ctx echo.Context) error {
@@ -60,24 +47,20 @@ func (h *ProductHandler) GetProduct(ctx echo.Context) error {
 
 func (h *ProductHandler) CreateProduct(ctx echo.Context) error {
 	var req dto.CreateProductRequest
-	user := ctx.Get("user")
-    if user == nil {
-        return ctx.JSON(http.StatusUnauthorized, response.ErrorResponse(http.StatusUnauthorized, "User not authenticated"))
-    }
-
-    claims, ok := user.(*jwt.Token)
-    if !ok {
-        return ctx.JSON(http.StatusUnauthorized, response.ErrorResponse(http.StatusUnauthorized, "Invalid token"))
-    }
-
-    // Extract claims
-    customClaims := claims.Claims.(*entity.JWTCustomClaims)
+	var t dto.CreateTransactionRequest
 
 	if err := ctx.Bind(&req); err != nil {
 		return ctx.JSON(http.StatusBadRequest, response.ErrorResponse(http.StatusBadRequest, err.Error()))
 	}
 
-	err := h.productService.Create(ctx.Request().Context(), req, customClaims)
+	userID, err := h.tokenService.GetUserIDFromToken(ctx)
+	if err != nil {
+		return ctx.JSON(http.StatusUnauthorized, response.ErrorResponse(http.StatusUnauthorized, err.Error()))
+	}
+
+	req.UserID = userID
+
+	err = h.productService.Create(ctx.Request().Context(), req, t)
 	if err != nil {
 		return ctx.JSON(http.StatusInternalServerError, response.ErrorResponse(http.StatusInternalServerError, err.Error()))
 	}

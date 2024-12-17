@@ -94,11 +94,6 @@ func (s *userService) Register(ctx context.Context, req dto.UserRegisterRequest)
 
 	user.Password = string(hashedPassword)
 
-	err = s.userRepository.Create(ctx, user)
-	if err != nil {
-		return err
-	}
-
 	templatePath := "./templates/email/verify-email.html"
 	tmpl, err := template.ParseFiles(templatePath)
 	if err != nil {
@@ -132,6 +127,11 @@ func (s *userService) Register(ctx context.Context, req dto.UserRegisterRequest)
 	// Send the email to Bob, Cora and Dan.
 	if err := d.DialAndSend(m); err != nil {
 		panic(err)
+	}
+
+	err = s.userRepository.Create(ctx, user)
+	if err != nil {
+		return err
 	}
 
 	return nil

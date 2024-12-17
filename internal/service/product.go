@@ -2,6 +2,7 @@ package service
 
 import (
 	"context"
+	"errors"
 
 	"github.com/mhusainh/FastTix/internal/entity"
 	"github.com/mhusainh/FastTix/internal/http/dto"
@@ -9,37 +10,45 @@ import (
 )
 
 type ProductService interface {
-	GetAllPending(ctx context.Context) ([]entity.Product, error)
-	GetByIdPending(ctx context.Context, id int64) (*entity.Product, error)
+	GetAll(ctx context.Context) ([]entity.Product, error)
 	GetById(ctx context.Context, id int64) (*entity.Product, error)
-	Create(ctx context.Context, req dto.CreateProductRequest, claims *entity.JWTCustomClaims) error
+	Create(ctx context.Context, req dto.CreateProductRequest, t dto.CreateTransactionRequest) error
 	Update(ctx context.Context, req dto.UpdateProductRequest) error
 	Delete(ctx context.Context, product *entity.Product) error
 }
 
 type productService struct {
-	productRepository repository.ProductRepository
+	productRepository     repository.ProductRepository
+	transactionRepository repository.TransactionRepository
 }
 
 func NewProductService(
 	productRepository repository.ProductRepository,
+	transactionRepository repository.TransactionRepository,
 ) ProductService {
-	return &productService{productRepository}
+	return &productService{productRepository, transactionRepository}
 }
 
-func (s productService) GetAllPending(ctx context.Context) ([]entity.Product, error) {
-	return s.productRepository.GetAllPending(ctx)
-}
-
-func (s productService) GetByIdPending(ctx context.Context, id int64) (*entity.Product, error) {
-	return s.productRepository.GetByIdPending(ctx, id)
+func (s productService) GetAll(ctx context.Context) ([]entity.Product, error) {
+	return s.productRepository.GetAll(ctx)
 }
 
 func (s productService) GetById(ctx context.Context, id int64) (*entity.Product, error) {
 	return s.productRepository.GetById(ctx, id)
 }
 
-func (s productService) Create(ctx context.Context, req dto.CreateProductRequest, claims *entity.JWTCustomClaims) error {
+func (s productService) Create(ctx context.Context, req dto.CreateProductRequest, t dto.CreateTransactionRequest) error {
+	userID := req.UserID
+	if userID == 0 {
+		return errors.New("User ID tidak ditemukan")
+	}
+
+	if req.ProductPrice == 0 {
+		req.ProductStatus = "pending"
+	} else {
+		req.ProductStatus = "unpaid"
+	}
+
 	product := &entity.Product{
 		ProductName:        req.ProductName,
 		ProductAddress:     req.ProductAddress,
@@ -49,11 +58,33 @@ func (s productService) Create(ctx context.Context, req dto.CreateProductRequest
 		ProductDescription: req.ProductDescription,
 		ProductCategory:    req.ProductCategory,
 		ProductQuantity:    req.ProductQuantity,
-		ProductType:        req.ProductType,
-		ProductStatus:      "pending",
-		UserID:             claims.ID,
+		ProductType:        "available",
+		ProductStatus:      req.ProductStatus,
+		UserID:             userID,
 	}
-	return s.productRepository.Create(ctx, product)
+
+	if err := s.productRepository.Create(ctx, product); err != nil {
+		return err
+	}
+
+	ProductID := product.ID
+	TransactionAmount := product.ProductPrice * 0.25
+
+	if TransactionAmount != 0 {
+		transaction := &entity.Transaction{
+			ProductID:           ProductID,
+			UserID:              userID,
+			TransactionQuantity: 1,
+			TransactionAmount:   TransactionAmount,
+			TransactionStatus:   "pending",
+		}
+		if err := s.transactionRepository.Create(ctx, transaction); err != nil {
+			return err
+		}
+	}
+
+	return nil
+
 }
 
 func (s productService) Update(ctx context.Context, req dto.UpdateProductRequest) error {
