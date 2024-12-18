@@ -16,6 +16,7 @@ func BuilderPublicRoutes(cfg *config.Config, db *gorm.DB) []route.Route {
 	userRepository := repository.NewUserRepository(db)
 	transactionRepository := repository.NewTransactionRepository(db)
 	submissionRepository := repository.NewSubmissionRepository(db)
+	ticketRepository := repository.NewTicketRepository(db)
 	//end
 
 	//service
@@ -23,15 +24,17 @@ func BuilderPublicRoutes(cfg *config.Config, db *gorm.DB) []route.Route {
 	productService := service.NewProductService(productRepository, transactionRepository)
 	userService := service.NewUserService(tokenService, cfg, userRepository)
 	submissionService := service.NewSubmissionService(submissionRepository)
+	ticketService := service.NewTicketService(ticketRepository)
 	//end
 
 	//handler
 	productHandler := handler.NewProductHandler(productService, tokenService)
 	userHandler := handler.NewUserHandler(tokenService, userService)
 	submissionHandler := handler.NewSubmissionHandler(submissionService)
+	ticketHandler := handler.NewTicketHandler(ticketService)
 	//end
 
-	return router.PublicRoutes(userHandler, productHandler, submissionHandler)
+	return router.PublicRoutes(userHandler, productHandler, submissionHandler, ticketHandler)
 }
 
 func BuilderPrivateRoutes(cfg *config.Config, db *gorm.DB) []route.Route {
@@ -40,6 +43,7 @@ func BuilderPrivateRoutes(cfg *config.Config, db *gorm.DB) []route.Route {
 	userRepository := repository.NewUserRepository(db)
 	transactionRepository := repository.NewTransactionRepository(db)
 	submissionRepository := repository.NewSubmissionRepository(db)
+	ticketRepository := repository.NewTicketRepository(db)
 	//end
 
 	//service
@@ -47,13 +51,15 @@ func BuilderPrivateRoutes(cfg *config.Config, db *gorm.DB) []route.Route {
 	productService := service.NewProductService(productRepository, transactionRepository)
 	userService := service.NewUserService(tokenService, cfg, userRepository)
 	submissionService := service.NewSubmissionService(submissionRepository)
+	ticketService := service.NewTicketService(ticketRepository)
 	//end
 
 	//handler
 	productHandler := handler.NewProductHandler(productService, tokenService)
 	userHandler := handler.NewUserHandler(tokenService, userService)
 	submissionHandler := handler.NewSubmissionHandler(submissionService)
+	ticketHandler := handler.NewTicketHandler(ticketService)
 	//end
 
-	return router.PrivateRoutes(productHandler, userHandler, submissionHandler)
+	return router.PrivateRoutes(productHandler, userHandler, submissionHandler, ticketHandler)
 }

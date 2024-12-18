@@ -17,12 +17,18 @@ func PublicRoutes(
 	userHandler handler.UserHandler, 
 	productHandler handler.ProductHandler,
 	submission handler.SubmissionHandler,
+	ticketHandler handler.TicketHandler,
 	) []route.Route {
 	return []route.Route{
 		{
 			Method: http.MethodGet,
 			Path: "/submissions",
 			Handler: submission.GetSubmissions,
+		},
+		{
+			Method: http.MethodGet,
+			Path: "/tickets",
+			Handler: ticketHandler.GetTickets,
 		},
 		{
 			Method:  http.MethodPost,
@@ -56,12 +62,18 @@ func PrivateRoutes(
 	productHandler handler.ProductHandler,
 	userHandler handler.UserHandler,
 	submission handler.SubmissionHandler,
+	ticketHandler handler.TicketHandler,
 	) []route.Route{
 	return []route.Route{
 		{
 			Method: http.MethodGet,
 			Path: "/submissions/:id",
 			Handler: submission.GetSubmission,
+		},
+		{
+			Method: http.MethodGet,
+			Path: "/tickets/:id",
+			Handler: ticketHandler.GetTicket,
 		},
 		{
 			Method: http.MethodGet,
