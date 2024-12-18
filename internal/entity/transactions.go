@@ -4,6 +4,7 @@ import "time"
 
 type Transaction struct {
 	ID                  int64     `json:"id"`
+	OrderID             string    `json:"order_id"`
 	TransactionStatus   string    `json:"transaction_status"`
 	ProductID           int64     `json:"product_id"`
 	UserID              int64     `json:"user_id"`

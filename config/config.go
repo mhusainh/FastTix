@@ -6,16 +6,23 @@ import (
 )
 
 type Config struct {
-	ENV         string      `env:"ENV" envDefault:"dev"`
-	PORT        string      `env:"PORT" envDefault:"8081"`
-	JWTConfig   JWTConfig   `envPrefix:"JWT_"`
-	MySQLConfig MySQLConfig `envPrefix:"MYSQL_"`
-	SMTPConfig  SMTPConfig  `envPrefix:"SMTP_"`
+	ENV            string         `env:"ENV" envDefault:"dev"`
+	PORT           string         `env:"PORT" envDefault:"8081"`
+	JWTConfig      JWTConfig      `envPrefix:"JWT_"`
+	MySQLConfig    MySQLConfig    `envPrefix:"MYSQL_"`
+	SMTPConfig     SMTPConfig     `envPrefix:"SMTP_"`
+	MidtransConfig MidtransConfig `envPrefix:"MIDTRANS_"`
+}
+
+type MidtransConfig struct {
+	ServerKey   string `env:"MIDTRANS_SERVER_KEY"`
+	ClientKey   string `env:"MIDTRANS_CLIENT_KEY"`
+	Environment string `env:"MIDTRANS_ENVIRONMENT" envDefault:"sandbox"`
 }
 
 type SMTPConfig struct {
 	Host     string `env:"HOST" envDefault:"localhost"`
-	Port     int `env:"PORT" envDefault:"587"`
+	Port     int    `env:"PORT" envDefault:"587"`
 	Username string `env:"USERNAME"`
 	Password string `env:"PASSWORD"`
 }

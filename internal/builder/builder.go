@@ -34,8 +34,10 @@ func BuilderPublicRoutes(cfg *config.Config, db *gorm.DB) []route.Route {
 	ticketHandler := handler.NewTicketHandler(ticketService)
 	//end
 
-	return router.PublicRoutes(userHandler, productHandler, submissionHandler, ticketHandler)
+	return router.PublicRoutes(userHandler, productHandler, submissionHandler, ticketHandler, handler.NewWebhookHandler())
 }
+
+// di builder.go
 
 func BuilderPrivateRoutes(cfg *config.Config, db *gorm.DB) []route.Route {
 	//repository
@@ -44,7 +46,6 @@ func BuilderPrivateRoutes(cfg *config.Config, db *gorm.DB) []route.Route {
 	transactionRepository := repository.NewTransactionRepository(db)
 	submissionRepository := repository.NewSubmissionRepository(db)
 	ticketRepository := repository.NewTicketRepository(db)
-	//end
 
 	//service
 	tokenService := service.NewTokenService(cfg.JWTConfig.SecretKey)
@@ -52,14 +53,14 @@ func BuilderPrivateRoutes(cfg *config.Config, db *gorm.DB) []route.Route {
 	userService := service.NewUserService(tokenService, cfg, userRepository)
 	submissionService := service.NewSubmissionService(submissionRepository)
 	ticketService := service.NewTicketService(ticketRepository)
-	//end
+	pengajuanService := service.NewPengajuanService(cfg, productRepository, userRepository, transactionRepository)
 
 	//handler
 	productHandler := handler.NewProductHandler(productService, tokenService)
 	userHandler := handler.NewUserHandler(tokenService, userService)
 	submissionHandler := handler.NewSubmissionHandler(submissionService)
 	ticketHandler := handler.NewTicketHandler(ticketService)
-	//end
+	pengajuanHandler := handler.NewPengajuanHandler(pengajuanService, tokenService)
 
-	return router.PrivateRoutes(productHandler, userHandler, submissionHandler, ticketHandler)
+	return router.PrivateRoutes(productHandler, userHandler, submissionHandler, ticketHandler, pengajuanHandler)
 }
