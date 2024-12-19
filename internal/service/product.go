@@ -3,7 +3,6 @@ package service
 import (
 	"bytes"
 	"context"
-	"errors"
 	"text/template"
 
 	"github.com/mhusainh/FastTix/config"
@@ -21,7 +20,18 @@ type ProductService interface {
 	Create(ctx context.Context, req dto.CreateProductRequest) error
 	Update(ctx context.Context, req dto.UpdateProductRequest) error
 	Delete(ctx context.Context, product *entity.Product) error
-	VerifySubmission(ctx context.Context, req dto.VerifySubmissionRequest) error
+	SearchProducts(ctx context.Context, search string) ([]entity.Product, error)
+	FilterProductsByAddress(ctx context.Context, address string) ([]entity.Product, error)
+	FilterProductsByCategory(ctx context.Context, category string) ([]entity.Product, error)
+	FilterProductsByPrice(ctx context.Context, minPrice string, maxPrice string) ([]entity.Product, error)
+	FilterProductsByStatus(ctx context.Context, status string) ([]entity.Product, error)
+	FilterProductsByDate(ctx context.Context, date string) ([]entity.Product, error)
+	FilterProductsByTime(ctx context.Context, time string) ([]entity.Product, error)
+	SortProductByNewest(ctx context.Context) ([]entity.Product, error)
+	SortProductByExpensive(ctx context.Context) ([]entity.Product, error)
+	SortProductByMostBought(ctx context.Context) ([]entity.Product, error)
+	SortProductByCheapest(ctx context.Context) ([]entity.Product, error)
+	SortProductByAvailable(ctx context.Context) ([]entity.Product, error)
 }
 
 type productService struct {
@@ -137,11 +147,42 @@ func (s productService) Delete(ctx context.Context, product *entity.Product) err
 	return s.productRepository.Delete(ctx, product)
 }
 
-func (s productService) VerifySubmission(ctx context.Context, req dto.VerifySubmissionRequest) error {
-	product, err := s.productRepository.GetByVerifySubmissionToken(ctx, req.Token)
-	if err != nil {
-		return errors.New("Token Verification is Wrong")
-	}
-	product.IsVerified = 1
-	return s.productRepository.Update(ctx, product)
+func (s productService) SearchProducts(ctx context.Context, search string) ([]entity.Product, error) {
+	return s.productRepository.SearchProducts(ctx, search)
+}
+func (s productService) FilterProductsByAddress(ctx context.Context, address string) ([]entity.Product, error) {
+	return s.productRepository.FilterProductsByAddress(ctx, address)
+}
+func (s productService) FilterProductsByCategory(ctx context.Context, category string) ([]entity.Product, error) {
+	return s.productRepository.FilterProductsByCategory(ctx, category)
+}
+func (s productService) FilterProductsByPrice(ctx context.Context, minPrice string, maxPrice string) ([]entity.Product, error) {
+	return s.productRepository.FilterProductsByPrice(ctx, minPrice, maxPrice)
+}
+func (s productService) FilterProductsByStatus(ctx context.Context, status string) ([]entity.Product, error) {
+	return s.productRepository.FilterProductsByStatus(ctx, status)
+}
+
+func (s productService) FilterProductsByDate(ctx context.Context, date string) ([]entity.Product, error) {
+	return s.productRepository.FilterProductsByDate(ctx, date)
+}
+
+func (s productService) FilterProductsByTime(ctx context.Context, time string) ([]entity.Product, error) {
+	return s.productRepository.FilterProductsByTime(ctx, time)
+}
+
+func (s productService) SortProductByNewest(ctx context.Context) ([]entity.Product, error) {
+	return s.productRepository.SortProductByNewest(ctx)
+}
+func (s productService) SortProductByExpensive(ctx context.Context) ([]entity.Product, error) {
+	return s.productRepository.SortProductByExpensive(ctx)
+}
+func (s productService) SortProductByMostBought(ctx context.Context) ([]entity.Product, error) {
+	return s.productRepository.SortProductByMostBought(ctx)
+}
+func (s productService) SortProductByCheapest(ctx context.Context) ([]entity.Product, error) {
+	return s.productRepository.SortProductByCheapest(ctx)
+}
+func (s productService) SortProductByAvailable(ctx context.Context) ([]entity.Product, error) {
+	return s.productRepository.SortProductByAvailable(ctx)
 }
