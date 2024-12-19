@@ -4,6 +4,10 @@ type GetProductByIDRequest struct {
 	ID int64 `param:"id" validate:"required"`
 }
 
+type GetProductByUserIDRequest struct {
+	UserID int64 `param:"user_id" validate:"required"`
+}
+
 type CreateProductRequest struct {
 	ProductName        string  `json:"product_name" validate:"required"`
 	ProductAddress     string  `json:"product_address" validate:"required"`
@@ -33,4 +37,23 @@ type UpdateProductRequest struct {
 
 type DeleteProductRequest struct {
 	ID int64 `param:"id" validate:"required"`
+}
+
+type FilterProductRequest struct {
+	MinPrice *float64 `query:"product_price" validate:"omitempty,gte=0"`
+	MaxPrice *float64 `query:"product_price" validate:"omitempty,gte=0"`
+	Category *string  `query:"product_category" validate:"omitempty"`
+	Location *string  `query:"product_address" validate:"omitempty"`
+	Price    *float64 `query:"product_price" validate:"omitempty,gte=0"`
+	Date     *string  `query:"product_date" validate:"omitempty,datetime=2006-01-02"` // Validasi format tanggal
+	Time     *string  `query:"product_time" validate:"omitempty,datetime=15:04:05"`   // Validasi format waktu
+}
+
+type SortProductsRequest struct {
+	sortBy string `query:"sort_by" validate:"omitempty,oneof=created_at price"`
+	srder  string `query:"order" validate:"omitempty,oneof=ASC DESC"`
+}
+
+type SearchProduct struct {
+	Keyword string `param:"keyword" validate:"required"`
 }

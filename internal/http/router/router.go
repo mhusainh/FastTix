@@ -21,6 +21,16 @@ func PublicRoutes(
 	) []route.Route {
 	return []route.Route{
 		{
+			Method:  http.MethodGet,
+			Path:    "/products",
+			Handler: productHandler.FilterProducts,
+		},
+		{
+			Method:  http.MethodGet,
+			Path:    "/products/sort",
+			Handler: productHandler.SortProducts,
+		},
+		{
 			Method: http.MethodGet,
 			Path: "/submissions",
 			Handler: submission.GetSubmissions,

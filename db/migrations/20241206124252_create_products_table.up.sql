@@ -2,7 +2,7 @@ BEGIN;
 
 CREATE TABLE IF NOT EXISTS products (
     id INT PRIMARY KEY AUTO_INCREMENT,
-    product_name VARCHAR(255) NOT NULL,
+    product_name VARCHAR(255) NOT NULL UNIQUE,
     product_address TEXT NOT NULL,
     product_time TIME NOT NULL,
     product_date DATE NOT NULL,

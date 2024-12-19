@@ -15,6 +15,9 @@ type ProductService interface {
 	Create(ctx context.Context, req dto.CreateProductRequest, t dto.CreateTransactionRequest) error
 	Update(ctx context.Context, req dto.UpdateProductRequest) error
 	Delete(ctx context.Context, product *entity.Product) error
+	Sort(ctx context.Context, sortBy string, order string) ([]entity.Product, error)
+	FilterProducts(ctx context.Context, req dto.FilterProductRequest) ([]entity.Product, error)
+	SearchProduct(ctx context.Context, keyword string) ([]entity.Product, error)
 }
 
 type productService struct {
@@ -124,4 +127,42 @@ func (s productService) Update(ctx context.Context, req dto.UpdateProductRequest
 
 func (s productService) Delete(ctx context.Context, product *entity.Product) error {
 	return s.productRepository.Delete(ctx, product)
+}
+
+func (s productService) Sort(ctx context.Context, sortBy string, order string) ([]entity.Product, error) {
+	return s.productRepository.SortProducts(ctx, sortBy, order)
+}
+
+// Filter products
+func (s productService) FilterProducts(ctx context.Context, req dto.FilterProductRequest) ([]entity.Product, error) {
+	filters := make(map[string]interface{})
+
+	if req.MinPrice != nil {
+		filters["min_price"] = *req.MinPrice
+	}
+	if req.MaxPrice != nil {
+		filters["max_price"] = *req.MaxPrice
+	}
+	if req.Category != nil {
+		filters["category"] = *req.Category
+	}
+	if req.Location != nil {
+		filters["location"] = *req.Location
+	}
+	if req.Price != nil {
+		filters["price"] = *req.Price
+	}
+	if req.Date != nil {
+		filters["date"] = *req.Date
+	}
+	if req.Time != nil {
+		filters["time"] = *req.Time
+	}
+
+	return s.productRepository.FilterProducts(ctx, filters)
+}
+
+// Search products by keyword
+func (s productService) SearchProduct(ctx context.Context, keyword string) ([]entity.Product, error) {
+	return s.productRepository.SearchProduct(ctx, keyword)
 }

@@ -102,3 +102,30 @@ func (h *ProductHandler) DeleteProduct(ctx echo.Context) error {
 
 	return ctx.JSON(http.StatusOK, response.SuccessResponse("Successfully delete a product", nil))
 }
+
+func (h *ProductHandler) FilterProducts(ctx echo.Context) error {
+	var req dto.FilterProductRequest
+
+	if err := ctx.Bind(&req); err != nil {
+		return ctx.JSON(http.StatusBadRequest, response.ErrorResponse(http.StatusBadRequest, err.Error()))
+	}
+
+	products, err := h.productService.FilterProducts(ctx.Request().Context(), req)
+	if err != nil {
+		return ctx.JSON(http.StatusInternalServerError, response.ErrorResponse(http.StatusInternalServerError, err.Error()))
+	}
+
+	return ctx.JSON(http.StatusOK, response.SuccessResponse("Successfully filtered products", products))
+}
+
+func (h *ProductHandler) SortProducts(ctx echo.Context) error {
+	sortBy := ctx.QueryParam("sort_by")
+	order := ctx.QueryParam("order")
+
+	products, err := h.productService.Sort(ctx.Request().Context(), sortBy, order)
+	if err != nil {
+		return ctx.JSON(http.StatusInternalServerError, response.ErrorResponse(http.StatusInternalServerError, err.Error()))
+	}
+
+	return ctx.JSON(http.StatusOK, response.SuccessResponse("Successfully sorted products", products))
+}
