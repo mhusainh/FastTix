@@ -11,6 +11,7 @@ type TransactionRepository interface {
 	Create(ctx context.Context, transaction *entity.Transaction) error
 	GetByOrderID(ctx context.Context, orderID string) (*entity.Transaction, error)
 	Update(ctx context.Context, transaction *entity.Transaction) error
+	
 }
 
 type transactionRepository struct {
@@ -36,3 +37,5 @@ func (r *transactionRepository) GetByOrderID(ctx context.Context, orderID string
 func (r *transactionRepository) Update(ctx context.Context, transaction *entity.Transaction) error {
 	return r.db.WithContext(ctx).Save(transaction).Error
 }
+
+

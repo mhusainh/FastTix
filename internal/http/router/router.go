@@ -16,9 +16,10 @@ var (
 func PublicRoutes(
 	userHandler handler.UserHandler,
 	productHandler handler.ProductHandler,
-	submission handler.SubmissionHandler,
+	// submissionHandler handler.SubmissionHandler,
 	ticketHandler handler.TicketHandler,
 	webhookHandler handler.WebhookHandler,
+	purchaseHandler handler.PurchaseHandler,
 ) []route.Route {
 	return []route.Route{
 		{
@@ -26,11 +27,11 @@ func PublicRoutes(
 			Path:    "/webhook/midtrans",
 			Handler: webhookHandler.MidtransWebhook,
 		},
-		{
-			Method:  http.MethodGet,
-			Path:    "/submissions",
-			Handler: submission.GetSubmissions,
-		},
+		// {
+		// 	Method:  http.MethodGet,
+		// 	Path:    "/submissions",
+		// 	Handler: submissionHandler.GetSubmissionDetail,
+		// },
 		{
 			Method:  http.MethodGet,
 			Path:    "/tickets",
@@ -63,18 +64,29 @@ func PublicRoutes(
 		},
 	}
 }
+
 func PrivateRoutes(
 	productHandler handler.ProductHandler,
 	userHandler handler.UserHandler,
-	submission handler.SubmissionHandler,
+	submissionHandler handler.SubmissionHandler,
 	ticketHandler handler.TicketHandler,
-	pengajuanHandler handler.PengajuanHandler,
+	purchaseHandler handler.PurchaseHandler,
 ) []route.Route {
 	return []route.Route{
 		{
+			Method:  http.MethodPost,
+			Path:    "/purchase",
+			Handler: purchaseHandler.PurchaseTicket,
+		},
+		{
+			Method:  http.MethodGet,
+			Path:    "/purchase/status/:order_id",
+			Handler: purchaseHandler.CheckPurchaseStatus,
+		},
+		{
 			Method:  http.MethodGet,
 			Path:    "/submissions/:id",
-			Handler: submission.GetSubmission,
+			Handler: submissionHandler.GetSubmissionDetail,
 		},
 		{
 			Method:  http.MethodGet,
@@ -87,8 +99,13 @@ func PrivateRoutes(
 			Handler: productHandler.GetProduct,
 		},
 		{
-			Method:  http.MethodPost,
+			Method:  http.MethodGet,
 			Path:    "/products",
+			Handler: productHandler.GetProducts,
+		},
+		{
+			Method:  http.MethodPost,
+			Path:    "/create/products",
 			Handler: productHandler.CreateProduct,
 		},
 		{
@@ -101,37 +118,30 @@ func PrivateRoutes(
 			Path:    "/products/:id",
 			Handler: productHandler.DeleteProduct,
 		},
-
-		// Tambahan route pengajuan
 		{
-			Method:  http.MethodPost,
-			Path:    "/submissions/midtrans/notification",
-			Handler: pengajuanHandler.MidtransNotification,
+			Method:  http.MethodGet,
+			Path:    "/submissions/detail",
+			Handler: submissionHandler.GetSubmissionDetail,
 		},
 		{
 			Method:  http.MethodGet,
-			Path:    "/submissions/pengajuan/detail",
-			Handler: pengajuanHandler.GetPengajuanDetail,
+			Path:    "/submissions",
+			Handler: productHandler.GetStatusPending,
 		},
 		{
 			Method:  http.MethodPost,
-			Path:    "/submissions/pengajuan",
-			Handler: pengajuanHandler.CreatePengajuan,
-		},
-		{
-			Method:  http.MethodPost,
-			Path:    "/submissions/midtrans/notification",
-			Handler: pengajuanHandler.MidtransNotification,
+			Path:    "/create/submissions",
+			Handler: submissionHandler.CreateSubmission,
 		},
 		{
 			Method:  http.MethodPost,
 			Path:    "/submissions/approve/:id",
-			Handler: pengajuanHandler.ApprovePengajuan,
+			Handler: submissionHandler.ApproveSubmission,
 		},
 		{
 			Method:  http.MethodPost,
 			Path:    "/submissions/reject/:id",
-			Handler: pengajuanHandler.RejectPengajuan,
+			Handler: submissionHandler.RejectSubmission,
 		},
 	}
 }

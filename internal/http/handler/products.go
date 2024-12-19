@@ -102,3 +102,12 @@ func (h *ProductHandler) DeleteProduct(ctx echo.Context) error {
 
 	return ctx.JSON(http.StatusOK, response.SuccessResponse("Successfully delete a product", nil))
 }
+
+func (h *ProductHandler) GetStatusPending(ctx echo.Context) error {
+	products, err := h.productService.GetStatusPending(ctx.Request().Context())
+	if err != nil {
+		return ctx.JSON(http.StatusInternalServerError, response.ErrorResponse(http.StatusInternalServerError, err.Error()))
+	}
+
+	return ctx.JSON(http.StatusOK, response.SuccessResponse("Successfully showing all products", products))
+}

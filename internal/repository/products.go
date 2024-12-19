@@ -13,13 +13,14 @@ type ProductRepository interface {
 	Create(ctx context.Context, product *entity.Product) error
 	Update(ctx context.Context, product *entity.Product) error
 	Delete(ctx context.Context, product *entity.Product) error
+	GetStatusPending(ctx context.Context) ([]entity.Product, error)
 }
 
 type productRepository struct {
 	db *gorm.DB
 }
 
-func NewProductRepository(db *gorm.DB) ProductRepository{
+func NewProductRepository(db *gorm.DB) ProductRepository {
 	return &productRepository{db}
 }
 
@@ -31,7 +32,7 @@ func (r *productRepository) GetAll(ctx context.Context) ([]entity.Product, error
 	return products, nil
 }
 
-func (r *productRepository) GetById(ctx context.Context, id int64) (*entity.Product, error){
+func (r *productRepository) GetById(ctx context.Context, id int64) (*entity.Product, error) {
 	result := new(entity.Product)
 	if err := r.db.WithContext(ctx).Where("id = ?", id).First(&result).Error; err != nil {
 		return nil, err
@@ -49,4 +50,13 @@ func (r *productRepository) Update(ctx context.Context, product *entity.Product)
 
 func (r *productRepository) Delete(ctx context.Context, product *entity.Product) error {
 	return r.db.WithContext(ctx).Delete(&product).Error
+}
+
+
+func (r *productRepository) GetStatusPending(ctx context.Context) ([]entity.Product, error) {
+	var products []entity.Product
+	if err := r.db.WithContext(ctx).Where("product_status = ?", "pending").Find(&products).Error; err != nil {
+		return nil, err
+	}
+	return products, nil
 }

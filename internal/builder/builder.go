@@ -10,57 +10,63 @@ import (
 	"gorm.io/gorm"
 )
 
+// BuilderPublicRoutes initializes public routes that do not require authentication
 func BuilderPublicRoutes(cfg *config.Config, db *gorm.DB) []route.Route {
-	//repository
+	// Repository Initialization
 	productRepository := repository.NewProductRepository(db)
 	userRepository := repository.NewUserRepository(db)
 	transactionRepository := repository.NewTransactionRepository(db)
-	submissionRepository := repository.NewSubmissionRepository(db)
+	// submissionRepository := repository.NewSubmissionRepository(db)
 	ticketRepository := repository.NewTicketRepository(db)
-	//end
+	// End Repository Initialization
 
-	//service
+	// Service Initialization
 	tokenService := service.NewTokenService(cfg.JWTConfig.SecretKey)
 	productService := service.NewProductService(productRepository, transactionRepository)
 	userService := service.NewUserService(tokenService, cfg, userRepository)
-	submissionService := service.NewSubmissionService(submissionRepository)
+	submissionService := service.NewSubmissionService(cfg, productRepository, userRepository, transactionRepository) // Updated to include cfg and repositories
 	ticketService := service.NewTicketService(ticketRepository)
-	//end
+	purchaseService := service.NewPurchaseService(cfg, productRepository, userRepository, transactionRepository, tokenService)
+	// End Service Initialization
 
-	//handler
+	// Handler Initialization
 	productHandler := handler.NewProductHandler(productService, tokenService)
 	userHandler := handler.NewUserHandler(tokenService, userService)
-	submissionHandler := handler.NewSubmissionHandler(submissionService)
 	ticketHandler := handler.NewTicketHandler(ticketService)
-	//end
+	purchaseHandler := handler.NewPurchaseHandler(purchaseService, tokenService)
+	webhookHandler := handler.NewWebhookHandler(purchaseService, submissionService) // Pass SubmissionService instead of PengajuanService
+	// End Handler Initialization
 
-	return router.PublicRoutes(userHandler, productHandler, submissionHandler, ticketHandler, handler.NewWebhookHandler())
+	return router.PublicRoutes(userHandler, productHandler, ticketHandler, webhookHandler, purchaseHandler)
 }
 
-// di builder.go
-
+// BuilderPrivateRoutes initializes private routes that require authentication
 func BuilderPrivateRoutes(cfg *config.Config, db *gorm.DB) []route.Route {
-	//repository
+	// Repository Initialization
 	productRepository := repository.NewProductRepository(db)
 	userRepository := repository.NewUserRepository(db)
 	transactionRepository := repository.NewTransactionRepository(db)
-	submissionRepository := repository.NewSubmissionRepository(db)
+	// submissionRepository := repository.NewSubmissionRepository(db)
 	ticketRepository := repository.NewTicketRepository(db)
+	// End Repository Initialization
 
-	//service
+	// Service Initialization
 	tokenService := service.NewTokenService(cfg.JWTConfig.SecretKey)
 	productService := service.NewProductService(productRepository, transactionRepository)
 	userService := service.NewUserService(tokenService, cfg, userRepository)
-	submissionService := service.NewSubmissionService(submissionRepository)
+	submissionService := service.NewSubmissionService(cfg, productRepository, userRepository, transactionRepository)
 	ticketService := service.NewTicketService(ticketRepository)
-	pengajuanService := service.NewPengajuanService(cfg, productRepository, userRepository, transactionRepository)
+	purchaseService := service.NewPurchaseService(cfg, productRepository, userRepository, transactionRepository, tokenService)
+	// End Service Initialization
 
-	//handler
+	// Handler Initialization
 	productHandler := handler.NewProductHandler(productService, tokenService)
 	userHandler := handler.NewUserHandler(tokenService, userService)
-	submissionHandler := handler.NewSubmissionHandler(submissionService)
+	submissionHandler := handler.NewSubmissionHandler(submissionService, tokenService)
 	ticketHandler := handler.NewTicketHandler(ticketService)
-	pengajuanHandler := handler.NewPengajuanHandler(pengajuanService, tokenService)
+	purchaseHandler := handler.NewPurchaseHandler(purchaseService, tokenService)
+	// webhookHandler is only in public routes
+	// End Handler Initialization
 
-	return router.PrivateRoutes(productHandler, userHandler, submissionHandler, ticketHandler, pengajuanHandler)
+	return router.PrivateRoutes(productHandler, userHandler, submissionHandler, ticketHandler, purchaseHandler)
 }

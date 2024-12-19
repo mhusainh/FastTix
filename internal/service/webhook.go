@@ -25,12 +25,12 @@ func (s *webhookService) ProcessNotification(ctx context.Context, payload map[st
 	// Extract necessary fields
 	orderID, ok := payload["order_id"].(string)
 	if !ok {
-		return errors.New("Invalid or missing order_id in payload")
+		return errors.New("invalid or missing order_id in payload")
 	}
 
 	status, ok := payload["transaction_status"].(string)
 	if !ok {
-		return errors.New("Invalid or missing transaction_status in payload")
+		return errors.New("invalid or missing transaction_status in payload")
 	}
 
 	// Example: Handle the order and status

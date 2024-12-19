@@ -10,7 +10,7 @@ type Server struct {
 	*echo.Echo
 }
 
-func NewServer(cfg *config.Config, publicRoutes, privateRoutes []route.Route) *Server{
+func NewServer(cfg *config.Config, publicRoutes, privateRoutes []route.Route) *Server {
 	e := echo.New()
 	v1 := e.Group("/api/v1")
 	if len(publicRoutes) > 0 {

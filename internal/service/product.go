@@ -15,6 +15,7 @@ type ProductService interface {
 	Create(ctx context.Context, req dto.CreateProductRequest, t dto.CreateTransactionRequest) error
 	Update(ctx context.Context, req dto.UpdateProductRequest) error
 	Delete(ctx context.Context, product *entity.Product) error
+	GetStatusPending(ctx context.Context) ([]entity.Product, error)
 }
 
 type productService struct {
@@ -124,4 +125,8 @@ func (s productService) Update(ctx context.Context, req dto.UpdateProductRequest
 
 func (s productService) Delete(ctx context.Context, product *entity.Product) error {
 	return s.productRepository.Delete(ctx, product)
+}
+
+func (s productService) GetStatusPending(ctx context.Context) ([]entity.Product, error) {
+	return s.productRepository.GetStatusPending(ctx)
 }

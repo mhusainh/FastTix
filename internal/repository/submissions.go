@@ -10,6 +10,7 @@ import (
 type SubmissionRepository interface {
 	GetAll(ctx context.Context) ([]entity.Product, error)
 	GetById(ctx context.Context, id int64) (*entity.Product, error)
+	GetSubmissionPending(ctx context.Context) (*entity.Product, error)
 }
 
 type submissionRepository struct {
@@ -31,6 +32,14 @@ func (r *submissionRepository) GetAll(ctx context.Context) ([]entity.Product, er
 func (r *submissionRepository) GetById(ctx context.Context, id int64) (*entity.Product, error) {
 	result := new(entity.Product)
 	if err := r.db.WithContext(ctx).Where("id = ? AND product_status = ?", id, "pending").First(&result).Error; err != nil {
+		return nil, err
+	}
+	return result, nil
+}
+
+func (r *submissionRepository) GetSubmissionPending(ctx context.Context) (*entity.Product, error) {
+	result := new(entity.Product)
+	if err := r.db.WithContext(ctx).Where("product_status = ?", "pending").First(&result).Error; err != nil {
 		return nil, err
 	}
 	return result, nil
