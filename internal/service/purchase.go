@@ -87,16 +87,9 @@ func (s *purchaseService) PurchaseTicket(ctx context.Context, userID int64, req 
 		log.Printf("ERROR: Time mismatch. Product Time: %s, Selected Time: %s", formattedProductTime, req.SelectedTime)
 		return nil, errors.New("Invalid time selection")
 	}
-
-	// Validate category
-	validCategories := map[string]bool{
-		"Regular":    true,
-		"VIP":        true,
-		"Early Bird": true,
-	}
-	if !validCategories[req.Category] {
-		log.Printf("ERROR: Invalid category selected: %s", req.Category)
-		return nil, errors.New("Invalid category selected")
+	if req.Category != product.ProductCategory {
+		log.Printf("ERROR: Category mismatch. Product Category: %s, Selected Category: %s", product.ProductCategory, req.Category)
+		return nil, errors.New("Invalid category selection")
 	}
 
 	// Create a transaction entry
@@ -193,12 +186,6 @@ func (s *purchaseService) createMidtransTransaction(ctx context.Context, product
 
 	return snapResp.RedirectURL, nil
 }
-
-// internal/service/purchase.go
-
-// internal/service/purchase.go
-
-// internal/service/purchase.go
 
 func (s *purchaseService) HandleMidtransNotification(ctx context.Context, notif map[string]interface{}) error {
 	orderID, ok := notif["order_id"].(string)
@@ -303,8 +290,9 @@ func (s *purchaseService) sendTicketEmail(email string, product *entity.Product,
         <p><strong>Event:</strong> %s</p>
         <p><strong>Date:</strong> %s</p>
         <p><strong>Time:</strong> %s</p>
+        <p><strong>Category:</strong> %s</p>
         <p>Please present this ticket at the event entrance.</p>
-    `, fullName, product.ProductName, product.ProductDate, product.ProductTime) // Use req.Category if available
+    `, fullName, product.ProductName, product.ProductDate, product.ProductTime, product.ProductCategory)
 
 	return s.sendEmail(email, subject, body)
 }
@@ -316,10 +304,6 @@ func (s *purchaseService) CheckPurchaseStatus(ctx context.Context, orderID strin
 	}
 	return trans.TransactionStatus, nil
 }
-
-// HandleMidtransNotification should be integrated with existing Midtrans webhook handler
-
-// sendEmail is a helper function to send emails
 func (s *purchaseService) sendEmail(to, subject, body string) error {
 	m := gomail.NewMessage()
 	m.SetHeader("From", s.cfg.SMTPConfig.Username)
