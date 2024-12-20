@@ -3,21 +3,25 @@ package database
 import (
 	"fmt"
 
-	"gorm.io/driver/mysql"
 	"github.com/mhusainh/FastTix/config"
+	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
 	"gorm.io/gorm/logger"
 )
 
-func InitDatabase(mysqlconfig config.MySQLConfig) (*gorm.DB, error) {
-	dsn := fmt.Sprintf("%s:%s@tcp(%s:%s)/%s?charset=utf8mb4&parseTime=True&loc=Local",
-		mysqlconfig.User,
-		mysqlconfig.Password,
-		mysqlconfig.Host,
-		mysqlconfig.Port,
-		mysqlconfig.Database,
+func InitDatabase(postgresConfig config.PostgresConfig) (*gorm.DB, error) {
+	// Format string DSN untuk PostgreSQL
+	dsn := fmt.Sprintf("host=%s port=%s user=%s password=%s dbname=%s sslmode=%s",
+		postgresConfig.Host,
+		postgresConfig.Port,
+		postgresConfig.User,
+		postgresConfig.Password,
+		postgresConfig.Database,
+		postgresConfig.SSLMode,
 	)
-	return gorm.Open(mysql.Open(dsn), &gorm.Config{
+	return gorm.Open(postgres.New(postgres.Config{
+		DSN: dsn,
+	}), &gorm.Config{
 		Logger: logger.Default.LogMode(logger.Info),
 	})
 }

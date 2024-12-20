@@ -68,3 +68,48 @@ func (h *TransactionHandler) GetTransactionByUserId(ctx echo.Context) error {
 
 	return ctx.JSON(http.StatusOK, response.SuccessResponse("Successfully showing all user transactions", transactions))
 }
+
+func (h *TransactionHandler) CheckoutTicket(ctx echo.Context) error {
+	var req dto.CreateTransactionRequest
+
+	if err := ctx.Bind(&req); err != nil {
+		return ctx.JSON(http.StatusBadRequest, response.ErrorResponse(http.StatusBadRequest, err.Error()))
+	}
+
+	err := h.transactionService.Create(ctx.Request().Context(), req)
+	if err != nil {
+		return ctx.JSON(http.StatusInternalServerError, response.ErrorResponse(http.StatusInternalServerError, err.Error()))
+	}
+
+	return ctx.JSON(http.StatusOK, response.SuccessResponse("Successfully create a transaction", nil))
+}
+
+func (h *TransactionHandler) PaymentTicket(ctx echo.Context) error {
+	var req dto.UpdateTransactionRequest
+
+	if err := ctx.Bind(&req); err != nil {
+		return ctx.JSON(http.StatusBadRequest, response.ErrorResponse(http.StatusBadRequest, err.Error()))
+	}
+
+	err := h.transactionService.PaymentTicket(ctx.Request().Context(), req)
+	if err != nil {
+		return ctx.JSON(http.StatusInternalServerError, response.ErrorResponse(http.StatusInternalServerError, err.Error()))
+	}
+
+	return ctx.JSON(http.StatusOK, response.SuccessResponse("Successfully payment a ticket", nil))
+}
+
+func (h *TransactionHandler) PaymentSubmission(ctx echo.Context) error {
+	var req dto.UpdateTransactionRequest
+
+	if err := ctx.Bind(&req); err != nil {
+		return ctx.JSON(http.StatusBadRequest, response.ErrorResponse(http.StatusBadRequest, err.Error()))
+	}
+
+	err := h.transactionService.PaymentSubmission(ctx.Request().Context(), req)
+	if err != nil {
+		return ctx.JSON(http.StatusInternalServerError, response.ErrorResponse(http.StatusInternalServerError, err.Error()))
+	}
+
+	return ctx.JSON(http.StatusOK, response.SuccessResponse("Successfully payment a submission", nil))
+}

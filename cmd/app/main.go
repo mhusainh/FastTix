@@ -19,7 +19,7 @@ func main() {
 	cfg, err := config.NewConfig(".env")
 	checkError(err)
 	//init & start database
-	db, err := database.InitDatabase(cfg.MySQLConfig)
+	db, err := database.InitDatabase(cfg.PostgresConfig)
 	//RBAC
 	publicRoutes := builder.BuilderPublicRoutes(cfg, db)
 	privateRoutes := builder.BuilderPrivateRoutes(cfg, db)

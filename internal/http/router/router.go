@@ -138,6 +138,24 @@ func PrivateRoutes(
 			Roles:   userOnly,
 		},
 		{
+			Method:  http.MethodPut,
+			Path:    "/submissions/:id/payment",
+			Handler: transactionHandler.PaymentSubmission,
+			Roles:   userOnly,
+		},
+		{
+			Method:  http.MethodPost,
+			Path:    "/tickets/:id/checkout",
+			Handler: transactionHandler.CheckoutTicket,
+			Roles:   userOnly,
+		},
+		{
+			Method:  http.MethodPut,
+			Path:    "/tickets/:id/payment",
+			Handler: transactionHandler.PaymentTicket,
+			Roles:   userOnly,
+		},
+		{
 			Method:  http.MethodGet,
 			Path:    "/transactions",
 			Handler: transactionHandler.GetTransactions,
