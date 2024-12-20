@@ -18,4 +18,5 @@ type CreateTransactionRequest struct {
 
 type UpdateTransactionRequest struct {
 	ID                int64 `param:"id" validate:"required"`
+	UserID            int64 `json:"user_id" validate:"required"`
 }
