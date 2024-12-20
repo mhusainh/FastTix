@@ -53,7 +53,7 @@ func BuilderPrivateRoutes(cfg *config.Config, db *gorm.DB) []route.Route {
 	userService := service.NewUserService(tokenService, cfg, userRepository)
 	submissionService := service.NewSubmissionService(cfg, submissionRepository, transactionRepository, userRepository, productRepository)
 	ticketService := service.NewTicketService(ticketRepository)
-	transactionService := service.NewTransactionService(transactionRepository)
+	transactionService := service.NewTransactionService(cfg, transactionRepository, userRepository, productRepository)
 	//end
 
 	//handler
