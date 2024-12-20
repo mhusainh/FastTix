@@ -116,6 +116,7 @@ func (s *transactionService) Create(ctx context.Context, req dto.CreateTransacti
 	} else {
 		req.TransactionStatus = "pending"
 	}
+	req.TransactionAmount = product.ProductPrice * float64(req.TransactionQuantity)
 	transaction := &entity.Transaction{
 		TransactionAmount:   req.TransactionAmount,
 		TransactionQuantity: req.TransactionQuantity,
@@ -151,47 +152,47 @@ func (s *transactionService) PaymentTicket(ctx context.Context, req dto.UpdateTr
 		return err
 	}
 	templatePath := "./templates/email/ticket.html"
-		tmpl, err := template.ParseFiles(templatePath)
-		if err != nil {
-			return err
-		}
+	tmpl, err := template.ParseFiles(templatePath)
+	if err != nil {
+		return err
+	}
 
-		var ReplacerEmail = struct {
-			Name    string
-			Address string
-			Time    string
-			Date    string
-			Price   float64
-		}{
-			Name:    product.ProductName,
-			Address: product.ProductAddress,
-			Time:    product.ProductTime,
-			Date:    product.ProductDate,
-			Price:   product.ProductPrice,
-		}
+	var ReplacerEmail = struct {
+		Name    string
+		Address string
+		Time    string
+		Date    string
+		Price   float64
+	}{
+		Name:    product.ProductName,
+		Address: product.ProductAddress,
+		Time:    product.ProductTime,
+		Date:    product.ProductDate,
+		Price:   product.ProductPrice,
+	}
 
-		var body bytes.Buffer
-		if err := tmpl.Execute(&body, ReplacerEmail); err != nil {
-			return err
-		}
+	var body bytes.Buffer
+	if err := tmpl.Execute(&body, ReplacerEmail); err != nil {
+		return err
+	}
 
-		m := gomail.NewMessage()
-		m.SetHeader("From", s.cfg.SMTPConfig.Username)
-		m.SetHeader("To", user.Email)
-		m.SetHeader("Subject", "Fast Tix : Ticket "+product.ProductName+"!")
-		m.SetBody("text/html", body.String())
+	m := gomail.NewMessage()
+	m.SetHeader("From", s.cfg.SMTPConfig.Username)
+	m.SetHeader("To", user.Email)
+	m.SetHeader("Subject", "Fast Tix : Ticket "+product.ProductName+"!")
+	m.SetBody("text/html", body.String())
 
-		d := gomail.NewDialer(
-			s.cfg.SMTPConfig.Host,
-			s.cfg.SMTPConfig.Port,
-			s.cfg.SMTPConfig.Username,
-			s.cfg.SMTPConfig.Password,
-		)
+	d := gomail.NewDialer(
+		s.cfg.SMTPConfig.Host,
+		s.cfg.SMTPConfig.Port,
+		s.cfg.SMTPConfig.Username,
+		s.cfg.SMTPConfig.Password,
+	)
 
-		// Send the email to Bob, Cora and Dan.
-		if err := d.DialAndSend(m); err != nil {
-			panic(err)
-		}
+	// Send the email to Bob, Cora and Dan.
+	if err := d.DialAndSend(m); err != nil {
+		panic(err)
+	}
 	transaction.TransactionStatus = "success"
 	return s.transactionRepository.Update(ctx, transaction)
 }
@@ -219,33 +220,33 @@ func (s *transactionService) PaymentSubmission(ctx context.Context, req dto.Upda
 		return err
 	}
 	templatePath := "./templates/email/notif-submission.html"
-		tmpl, err := template.ParseFiles(templatePath)
-		if err != nil {
-			return err
-		}
+	tmpl, err := template.ParseFiles(templatePath)
+	if err != nil {
+		return err
+	}
 
-		var body bytes.Buffer
-		if err := tmpl.Execute(&body, nil); err != nil {
-			return err
-		}
+	var body bytes.Buffer
+	if err := tmpl.Execute(&body, nil); err != nil {
+		return err
+	}
 
-		m := gomail.NewMessage()
-		m.SetHeader("From", s.cfg.SMTPConfig.Username)
-		m.SetHeader("To", user.Email)
-		m.SetHeader("Subject", "Fast Tix : Submission Event!")
-		m.SetBody("text/html", body.String())
+	m := gomail.NewMessage()
+	m.SetHeader("From", s.cfg.SMTPConfig.Username)
+	m.SetHeader("To", user.Email)
+	m.SetHeader("Subject", "Fast Tix : Submission Event!")
+	m.SetBody("text/html", body.String())
 
-		d := gomail.NewDialer(
-			s.cfg.SMTPConfig.Host,
-			s.cfg.SMTPConfig.Port,
-			s.cfg.SMTPConfig.Username,
-			s.cfg.SMTPConfig.Password,
-		)
+	d := gomail.NewDialer(
+		s.cfg.SMTPConfig.Host,
+		s.cfg.SMTPConfig.Port,
+		s.cfg.SMTPConfig.Username,
+		s.cfg.SMTPConfig.Password,
+	)
 
-		// Send the email to Bob, Cora and Dan.
-		if err := d.DialAndSend(m); err != nil {
-			panic(err)
-		}
+	// Send the email to Bob, Cora and Dan.
+	if err := d.DialAndSend(m); err != nil {
+		panic(err)
+	}
 	transaction.TransactionStatus = "success"
 	return s.transactionRepository.Update(ctx, transaction)
 }

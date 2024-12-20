@@ -73,7 +73,7 @@ func (h *TransactionHandler) GetTransactionByUserId(ctx echo.Context) error {
 
 func (h *TransactionHandler) CheckoutTicket(ctx echo.Context) error {
 	var req dto.CreateTransactionRequest
-
+	var payment dto.CreatePaymentRequest
 	if err := ctx.Bind(&req); err != nil {
 		return ctx.JSON(http.StatusBadRequest, response.ErrorResponse(http.StatusBadRequest, err.Error()))
 	}
@@ -90,7 +90,11 @@ func (h *TransactionHandler) CheckoutTicket(ctx echo.Context) error {
 		return ctx.JSON(http.StatusInternalServerError, response.ErrorResponse(http.StatusInternalServerError, err.Error()))
 	}
 
-	return ctx.JSON(http.StatusOK, response.SuccessResponse("Successfully create a transaction", nil))
+	purchase, err := h.paymentService.CreatePayment(ctx.Request().Context(), payment)
+	if err != nil {
+		return ctx.JSON(http.StatusInternalServerError, response.ErrorResponse(http.StatusInternalServerError, err.Error()))
+	}
+	return ctx.JSON(http.StatusOK, response.SuccessResponse("Successfully create a transaction", purchase))
 }
 
 func (h *TransactionHandler) PaymentTicket(ctx echo.Context) error {
@@ -99,7 +103,7 @@ func (h *TransactionHandler) PaymentTicket(ctx echo.Context) error {
 	if err := ctx.Bind(&req); err != nil {
 		return ctx.JSON(http.StatusBadRequest, response.ErrorResponse(http.StatusBadRequest, err.Error()))
 	}
-	
+
 	userID, err := h.tokenService.GetUserIDFromToken(ctx)
 	if err != nil {
 		return ctx.JSON(http.StatusUnauthorized, response.ErrorResponse(http.StatusUnauthorized, err.Error()))

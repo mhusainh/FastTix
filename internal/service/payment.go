@@ -3,6 +3,7 @@ package service
 import (
 	"context"
 	"errors"
+	"fmt"
 
 	"github.com/mhusainh/FastTix/config"
 	"github.com/mhusainh/FastTix/internal/http/dto"
@@ -53,6 +54,7 @@ func (s *paymentService) CreatePayment(ctx context.Context, req dto.CreatePaymen
 	if err != nil {
 		return "", err
 	}
+	fmt.Println(snapResponse.RedirectURL)
 	return snapResponse.RedirectURL, nil
 }
 
