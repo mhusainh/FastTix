@@ -21,16 +21,16 @@ func BuilderPublicRoutes(cfg *config.Config, db *gorm.DB) []route.Route {
 
 	//service
 	tokenService := service.NewTokenService(cfg.JWTConfig.SecretKey)
-	productService := service.NewProductService(productRepository, transactionRepository)
+	productService := service.NewProductService(productRepository)
 	userService := service.NewUserService(tokenService, cfg, userRepository)
-	submissionService := service.NewSubmissionService(submissionRepository)
+	submissionService := service.NewSubmissionService(cfg, submissionRepository, transactionRepository, userRepository)
 	ticketService := service.NewTicketService(ticketRepository)
 	//end
 
 	//handler
-	productHandler := handler.NewProductHandler(productService, tokenService)
+	productHandler := handler.NewProductHandler(productService)
 	userHandler := handler.NewUserHandler(tokenService, userService)
-	submissionHandler := handler.NewSubmissionHandler(submissionService)
+	submissionHandler := handler.NewSubmissionHandler(submissionService, tokenService)
 	ticketHandler := handler.NewTicketHandler(ticketService)
 	//end
 
@@ -48,16 +48,16 @@ func BuilderPrivateRoutes(cfg *config.Config, db *gorm.DB) []route.Route {
 
 	//service
 	tokenService := service.NewTokenService(cfg.JWTConfig.SecretKey)
-	productService := service.NewProductService(productRepository, transactionRepository)
+	productService := service.NewProductService(productRepository)
 	userService := service.NewUserService(tokenService, cfg, userRepository)
-	submissionService := service.NewSubmissionService(submissionRepository)
+	submissionService := service.NewSubmissionService(cfg,submissionRepository, transactionRepository, userRepository)
 	ticketService := service.NewTicketService(ticketRepository)
 	//end
 
 	//handler
-	productHandler := handler.NewProductHandler(productService, tokenService)
+	productHandler := handler.NewProductHandler(productService)
 	userHandler := handler.NewUserHandler(tokenService, userService)
-	submissionHandler := handler.NewSubmissionHandler(submissionService)
+	submissionHandler := handler.NewSubmissionHandler(submissionService, tokenService)
 	ticketHandler := handler.NewTicketHandler(ticketService)
 	//end
 

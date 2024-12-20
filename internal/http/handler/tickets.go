@@ -18,7 +18,14 @@ func NewTicketHandler(ticketService service.TicketService) TicketHandler {
 }
 
 func (h TicketHandler) GetTickets(ctx echo.Context) error {
-	ticket, err := h.ticketService.GetAll(ctx.Request().Context())
+	var req dto.GetAllProductsRequest
+	
+	err := ctx.Bind(&req)
+	if err != nil {
+		return ctx.JSON(http.StatusBadRequest, response.ErrorResponse(http.StatusBadRequest, err.Error()))
+	}
+
+	ticket, err := h.ticketService.GetAll(ctx.Request().Context(), req)
 	if err != nil {
 		return ctx.JSON(http.StatusInternalServerError, response.ErrorResponse(http.StatusInternalServerError, err.Error()))
 	}

@@ -10,7 +10,7 @@ CREATE TABLE IF NOT EXISTS products (
     product_description TEXT NOT NULL,
     product_quantity INT NOT NULL,
     product_type ENUM('available', 'unavailable') NOT NULL,
-    product_status ENUM('unpaid','pending', 'unaccepted', 'accepted') NOT NULL,
+    product_status ENUM('unpaid','pending', 'rejected', 'accepted') NOT NULL,
     product_category VARCHAR(255) NOT NULL,
     user_id INT NOT NULL,
     CONSTRAINT fk_user_products FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE ON UPDATE CASCADE,

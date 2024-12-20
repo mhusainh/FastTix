@@ -2,21 +2,17 @@ package repository
 
 import (
 	"context"
-	"fmt"
+	"strings"
 
 	"github.com/mhusainh/FastTix/internal/entity"
+	"github.com/mhusainh/FastTix/internal/http/dto"
 	"gorm.io/gorm"
 )
 
 type ProductRepository interface {
-	GetAll(ctx context.Context) ([]entity.Product, error)
+	GetAll(ctx context.Context, req dto.GetAllProductsRequest) ([]entity.Product, error)
 	GetById(ctx context.Context, id int64) (*entity.Product, error)
-	Create(ctx context.Context, product *entity.Product) error
-	Update(ctx context.Context, product *entity.Product) error
 	Delete(ctx context.Context, product *entity.Product) error
-	FilterProducts(ctx context.Context, filters map[string]interface{}) ([]entity.Product, error)
-	SortProducts(ctx context.Context, sortBy string, order string) ([]entity.Product, error)
-	SearchProduct(ctx context.Context, keyword string) ([]entity.Product, error)
 }
 
 type productRepository struct {
@@ -27,9 +23,25 @@ func NewProductRepository(db *gorm.DB) ProductRepository {
 	return &productRepository{db}
 }
 
-func (r *productRepository) GetAll(ctx context.Context) ([]entity.Product, error) {
-	var products []entity.Product
-	if err := r.db.WithContext(ctx).Find(&products).Error; err != nil {
+func (r *productRepository) GetAll(ctx context.Context, req dto.GetAllProductsRequest) ([]entity.Product, error) {
+	products := make([]entity.Product, 0)
+	query := r.db.WithContext(ctx)
+	if req.Search != "" {
+		search := strings.ToLower(req.Search)
+		query = query.Where("LOWER(product_name) LIKE ?", "%"+search+"%").
+			Or("LOWER(product_category) LIKE ?", "%"+search+"%").
+			Or("LOWER(product_address) LIKE ?", "%"+search+"%").
+			Or("LOWER(product_price) LIKE ?", "%"+search+"%").
+			Or("LOWER(product_date) LIKE ?", "%"+search+"%").
+			Or("LOWER(product_time) LIKE ?", "%"+search+"%")
+	}
+	if req.Sort != "" && req.Order != "" {
+		query = query.Order(req.Sort + " " + req.Order)
+	}
+	if req.Page != 0 && req.Limit != 0 {
+		query = query.Offset((req.Page - 1) * req.Limit).Limit(req.Limit)
+	}
+	if err := query.Find(&products).Error; err != nil {
 		return nil, err
 	}
 	return products, nil
@@ -47,73 +59,6 @@ func (r *productRepository) Create(ctx context.Context, product *entity.Product)
 	return r.db.WithContext(ctx).Create(&product).Error
 }
 
-func (r *productRepository) Update(ctx context.Context, product *entity.Product) error {
-	return r.db.WithContext(ctx).Updates(&product).Error
-}
-
 func (r *productRepository) Delete(ctx context.Context, product *entity.Product) error {
 	return r.db.WithContext(ctx).Delete(&product).Error
-}
-
-func (r *productRepository) FilterProducts(ctx context.Context, filters map[string]interface{}) ([]entity.Product, error) {
-	var products []entity.Product
-
-	// Build the query dynamically
-	query := r.db.WithContext(ctx)
-	for key, value := range filters {
-		switch key {
-		case "min_price":
-			query = query.Where("product_price >= ?", value)
-		case "max_price":
-			query = query.Where("product_price <= ?", value)
-		case "category":
-			query = query.Where("product_category = ?", value)
-		case "location":
-			query = query.Where("product_address LIKE ?", fmt.Sprintf("%%%s%%", value))
-		case "time":
-			query = query.Where("product_time = ?", value)
-		case "date":
-			query = query.Where("product_date = ?", value)
-		case "price":
-			query = query.Where("product_price = ?", value)
-		}
-	}
-
-	// Execute query
-	if err := query.Find(&products).Error; err != nil {
-		return nil, err
-	}
-	return products, nil
-}
-
-// Generic Sorting
-func (r *productRepository) SortProducts(ctx context.Context, sortBy string, order string) ([]entity.Product, error) {
-	var products []entity.Product
-
-	// Default sorting if invalid parameters are passed
-	if sortBy == "" {
-		sortBy = "created_at"
-	}
-	if order != "ASC" && order != "DESC" {
-		order = "ASC"
-	}
-
-	// Execute query with sorting
-	if err := r.db.WithContext(ctx).Order(fmt.Sprintf("%s %s", sortBy, order)).Find(&products).Error; err != nil {
-		return nil, err
-	}
-	return products, nil
-}
-
-// Search Product
-func (r *productRepository) SearchProduct(ctx context.Context, keyword string) ([]entity.Product, error) {
-	var products []entity.Product
-
-	// Search by name with partial match
-	if err := r.db.WithContext(ctx).
-		Where("name LIKE ?", fmt.Sprintf("%%%s%%", keyword)).
-		Find(&products).Error; err != nil {
-		return nil, err
-	}
-	return products, nil
 }

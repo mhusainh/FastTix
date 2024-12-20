@@ -2,6 +2,7 @@ package dto
 
 type GetProductByIDRequest struct {
 	ID int64 `param:"id" validate:"required"`
+	UserID int64 `json:"user_id" validate:"required"`
 }
 
 type GetProductByUserIDRequest struct {
@@ -33,6 +34,7 @@ type UpdateProductRequest struct {
 	ProductCategory    string  `json:"product_category" validate:"required"`
 	ProductQuantity    int     `json:"product_quantity" validate:"required"`
 	ProductType        string  `json:"product_type" validate:"required"`
+	UserID             int64   `json:"user_id" validate:"required"`
 }
 
 type DeleteProductRequest struct {
@@ -56,4 +58,12 @@ type SortProductsRequest struct {
 
 type SearchProduct struct {
 	Keyword string `param:"keyword" validate:"required"`
+}
+
+type GetAllProductsRequest struct {
+	Page   int  `query:"page" validate:"required"`
+	Limit  int  `query:"limit" validate:"required"`
+	Search string `query:"search" validate:"required"`
+	Sort   string `query:"sort" validate:"required"`
+	Order  string `query:"order" validate:"required"`
 }
