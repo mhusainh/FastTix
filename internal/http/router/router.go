@@ -145,7 +145,7 @@ func PrivateRoutes(
 		},
 		{
 			Method:  http.MethodPost,
-			Path:    "/tickets/:id/checkout",
+			Path:    "/tickets/:product_id/checkout",
 			Handler: transactionHandler.CheckoutTicket,
 			Roles:   userOnly,
 		},
