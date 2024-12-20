@@ -12,6 +12,7 @@ import (
 type ProductRepository interface {
 	GetAll(ctx context.Context, req dto.GetAllProductsRequest) ([]entity.Product, error)
 	GetById(ctx context.Context, id int64) (*entity.Product, error)
+	GetByName(ctx context.Context, name string) (*entity.Product, error)
 	Delete(ctx context.Context, product *entity.Product) error
 }
 
@@ -50,6 +51,14 @@ func (r *productRepository) GetAll(ctx context.Context, req dto.GetAllProductsRe
 func (r *productRepository) GetById(ctx context.Context, id int64) (*entity.Product, error) {
 	result := new(entity.Product)
 	if err := r.db.WithContext(ctx).Where("id = ?", id).First(&result).Error; err != nil {
+		return nil, err
+	}
+	return result, nil
+}
+
+func (r *productRepository) GetByName(ctx context.Context, name string) (*entity.Product, error) {
+	result := new(entity.Product)
+	if err := r.db.WithContext(ctx).Where("product_name = ?", name).First(&result).Error; err != nil {
 		return nil, err
 	}
 	return result, nil

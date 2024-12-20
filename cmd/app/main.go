@@ -29,7 +29,7 @@ func main() {
 	waitForShutdown(srv)
 }
 
-func waitForShutdown(srv *server.Server){
+func waitForShutdown(srv *server.Server) {
 	quit := make(chan os.Signal, 1)
 
 	signal.Notify(quit, os.Interrupt)
@@ -45,11 +45,11 @@ func waitForShutdown(srv *server.Server){
 	}()
 }
 
-func runServer(srv *server.Server, port string){
-	go func ()  {
+func runServer(srv *server.Server, port string) {
+	go func() {
 		err := srv.Start(fmt.Sprintf(":%s", port))
 		if err != nil {
-			log.Fatal(err)			
+			log.Fatal(err)
 		}
 	}()
 }

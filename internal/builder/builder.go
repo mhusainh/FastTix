@@ -23,7 +23,7 @@ func BuilderPublicRoutes(cfg *config.Config, db *gorm.DB) []route.Route {
 	tokenService := service.NewTokenService(cfg.JWTConfig.SecretKey)
 	productService := service.NewProductService(productRepository)
 	userService := service.NewUserService(tokenService, cfg, userRepository)
-	submissionService := service.NewSubmissionService(cfg, submissionRepository, transactionRepository, userRepository)
+	submissionService := service.NewSubmissionService(cfg, submissionRepository, transactionRepository, userRepository, productRepository)
 	ticketService := service.NewTicketService(ticketRepository)
 	//end
 
@@ -50,7 +50,7 @@ func BuilderPrivateRoutes(cfg *config.Config, db *gorm.DB) []route.Route {
 	tokenService := service.NewTokenService(cfg.JWTConfig.SecretKey)
 	productService := service.NewProductService(productRepository)
 	userService := service.NewUserService(tokenService, cfg, userRepository)
-	submissionService := service.NewSubmissionService(cfg,submissionRepository, transactionRepository, userRepository)
+	submissionService := service.NewSubmissionService(cfg, submissionRepository, transactionRepository, userRepository, productRepository)
 	ticketService := service.NewTicketService(ticketRepository)
 	//end
 

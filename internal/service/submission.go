@@ -27,7 +27,8 @@ type submissionService struct {
 	cfg                   *config.Config
 	submissionRepository  repository.SubmissionRepository
 	transactionRepository repository.TransactionRepository
-	userRepository           repository.UserRepository
+	userRepository        repository.UserRepository
+	productRepository     repository.ProductRepository
 }
 
 func NewSubmissionService(
@@ -35,8 +36,9 @@ func NewSubmissionService(
 	submissionRepository repository.SubmissionRepository,
 	transactionRepository repository.TransactionRepository,
 	userRepository repository.UserRepository,
+	productRepository repository.ProductRepository,
 ) SubmissionService {
-	return &submissionService{cfg, submissionRepository, transactionRepository, userRepository}
+	return &submissionService{cfg, submissionRepository, transactionRepository, userRepository, productRepository}
 }
 
 func (s submissionService) GetAll(ctx context.Context, req dto.GetAllProductsRequest) ([]entity.Product, error) {
@@ -55,6 +57,10 @@ func (s submissionService) Create(ctx context.Context, req dto.CreateProductRequ
 	user, err := s.userRepository.GetById(ctx, userID)
 	if err != nil {
 		return err
+	}
+	exist, err := s.productRepository.GetByName(ctx, req.ProductName)
+	if err == nil && exist != nil {
+		return errors.New("Nama event sudah digunakan")
 	}
 	if req.ProductPrice == 0 {
 		req.ProductStatus = "pending"
