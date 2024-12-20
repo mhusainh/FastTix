@@ -9,7 +9,7 @@ type Config struct {
 	ENV            string         `env:"ENV" envDefault:"dev"`
 	PORT           string         `env:"PORT" envDefault:"8081"`
 	JWTConfig      JWTConfig      `envPrefix:"JWT_"`
-	PostgresConfig PostgresConfig `envPrefix:"POSTGRES_"`
+	MySQLConfig MySQLConfig `envPrefix:"MYSQL_"`
 	SMTPConfig     SMTPConfig     `envPrefix:"SMTP_"`
 }
 
@@ -24,13 +24,12 @@ type JWTConfig struct {
 	SecretKey string `env:"SECRET_KEY"`
 }
 
-type PostgresConfig struct {
+type MySQLConfig struct {
 	Host     string `env:"HOST" envDefault:"localhost"`
-	Port     string `env:"PORT" envDefault:"5432"`
-	User     string `env:"USER" envDefault:"postgres"`
+	Port     string `env:"PORT" envDefault:"3306"`
+	User     string `env:"USER" envDefault:"root"`
 	Password string `env:"PASSWORD"`
 	Database string `env:"DATABASE"`
-	SSLMode  string `env:"SSL_MODE" envDefault:"disable"`
 }
 
 func NewConfig(path string) (*Config, error) {
