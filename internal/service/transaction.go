@@ -18,7 +18,8 @@ type TransactionService interface {
 	GetById(ctx context.Context, id int64) (*entity.Transaction, error)
 	GetByUserId(ctx context.Context, req dto.GetTransactionByUserIDRequest) ([]entity.Transaction, error)
 	Create(ctx context.Context, req dto.CreateTransactionRequest) error
-	Update(ctx context.Context, req dto.UpdateTransactionRequest) error
+	PaymentTicket(ctx context.Context, req dto.UpdateTransactionRequest) error
+	PaymentSubmission(ctx context.Context, req dto.UpdateTransactionRequest) error
 }
 
 type transactionService struct {
@@ -62,19 +63,10 @@ func (s *transactionService) Create(ctx context.Context, req dto.CreateTransacti
 	if err != nil {
 		return err
 	}
-	transaction := &entity.Transaction{
-		TransactionAmount:   req.TransactionAmount,
-		TransactionQuantity: req.TransactionQuantity,
-		TransactionStatus:   "success",
-		UserID:              userID,
-		ProductID:           product.ID,
-	}
+
 	if product.ProductPrice == 0 {
-		err := s.transactionRepository.Create(ctx, transaction)
-		if err != nil {
-			return err
-		}
-		templatePath := "./templates/email/notif-submission.html"
+		req.TransactionStatus = "success"
+		templatePath := "./templates/email/ticket.html"
 		tmpl, err := template.ParseFiles(templatePath)
 		if err != nil {
 			return err
@@ -116,8 +108,58 @@ func (s *transactionService) Create(ctx context.Context, req dto.CreateTransacti
 		if err := d.DialAndSend(m); err != nil {
 			panic(err)
 		}
-
-		return s.transactionRepository.Create(ctx, req)
+		product.ProductQuantity -= req.TransactionQuantity
+		err = s.productRepository.Update(ctx, product)
+		if err != nil {
+			return err
+		}
+	} else {
+		req.TransactionStatus = "pending"
+	}
+	transaction := &entity.Transaction{
+		TransactionAmount:   req.TransactionAmount,
+		TransactionQuantity: req.TransactionQuantity,
+		TransactionStatus:   req.TransactionStatus,
+		UserID:              userID,
+		ProductID:           product.ID,
 	}
 
+	return s.transactionRepository.Create(ctx, transaction)
+}
+
+func (s *transactionService) PaymentTicket(ctx context.Context, req dto.UpdateTransactionRequest) error {
+	transaction, err := s.transactionRepository.GetById(ctx, req.ID)
+	if err != nil {
+		return err
+	}
+	product, err := s.productRepository.GetById(ctx, transaction.ProductID)
+	if err != nil {
+		return err
+	}
+
+	product.ProductQuantity -= transaction.TransactionQuantity
+	err = s.productRepository.Update(ctx, product)
+	if err != nil {
+		return err
+	}
+	transaction.TransactionStatus = "success"
+	return s.transactionRepository.Update(ctx, transaction)
+}
+
+func (s *transactionService) PaymentSubmission(ctx context.Context, req dto.UpdateTransactionRequest) error {
+	transaction, err := s.transactionRepository.GetById(ctx, req.ID)
+	if err != nil {
+		return err
+	}
+	product, err := s.productRepository.GetById(ctx, transaction.ProductID)
+	if err != nil {
+		return err
+	}
+	product.ProductStatus = "pending"
+	err = s.productRepository.Update(ctx, product)
+	if err != nil {
+		return err
+	}
+	transaction.TransactionStatus = "success"
+	return s.transactionRepository.Update(ctx, transaction)
 }

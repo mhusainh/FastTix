@@ -14,6 +14,7 @@ type ProductRepository interface {
 	GetById(ctx context.Context, id int64) (*entity.Product, error)
 	GetByUserId(ctx context.Context, req dto.GetProductByUserIDRequest) ([]entity.Product, error)
 	GetByName(ctx context.Context, name string) (*entity.Product, error)
+	Update(ctx context.Context, product *entity.Product) error
 	Delete(ctx context.Context, product *entity.Product) error
 }
 
