@@ -116,6 +116,7 @@ func (s *transactionService) Create(ctx context.Context, req dto.CreateTransacti
 	} else {
 		req.TransactionStatus = "pending"
 	}
+	req.TransactionAmount = product.ProductPrice * float64(req.TransactionQuantity)
 	transaction := &entity.Transaction{
 		TransactionAmount:   req.TransactionAmount,
 		TransactionQuantity: req.TransactionQuantity,
