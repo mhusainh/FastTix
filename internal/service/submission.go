@@ -41,15 +41,15 @@ func NewSubmissionService(
 	return &submissionService{cfg, submissionRepository, transactionRepository, userRepository, productRepository}
 }
 
-func (s submissionService) GetAll(ctx context.Context, req dto.GetAllProductsRequest) ([]entity.Product, error) {
+func (s *submissionService) GetAll(ctx context.Context, req dto.GetAllProductsRequest) ([]entity.Product, error) {
 	return s.submissionRepository.GetAll(ctx, req)
 }
 
-func (s submissionService) GetById(ctx context.Context, id int64) (*entity.Product, error) {
+func (s *submissionService) GetById(ctx context.Context, id int64) (*entity.Product, error) {
 	return s.submissionRepository.GetById(ctx, id)
 }
 
-func (s submissionService) Create(ctx context.Context, req dto.CreateProductRequest, t dto.CreateTransactionRequest) error {
+func (s *submissionService) Create(ctx context.Context, req dto.CreateProductRequest, t dto.CreateTransactionRequest) error {
 	userID := req.UserID
 	if userID == 0 {
 		return errors.New("User ID tidak ditemukan")
@@ -134,7 +134,7 @@ func (s submissionService) Create(ctx context.Context, req dto.CreateProductRequ
 
 }
 
-func (s submissionService) UpdateByUser(ctx context.Context, req dto.UpdateProductRequest) error {
+func (s *submissionService) UpdateByUser(ctx context.Context, req dto.UpdateProductRequest) error {
 	userID := req.UserID
 	if userID == 0 {
 		return errors.New("User ID tidak ditemukan")
@@ -179,7 +179,7 @@ func (s submissionService) UpdateByUser(ctx context.Context, req dto.UpdateProdu
 	return s.submissionRepository.Update(ctx, submission)
 }
 
-func (s submissionService) Approve(ctx context.Context, id int64) error {
+func (s *submissionService) Approve(ctx context.Context, id int64) error {
 	submission, err := s.submissionRepository.GetById(ctx, id)
 	if err != nil {
 		return err
@@ -191,7 +191,7 @@ func (s submissionService) Approve(ctx context.Context, id int64) error {
 	return s.submissionRepository.Update(ctx, submission)
 }
 
-func (s submissionService) Reject(ctx context.Context, id int64) error {
+func (s *submissionService) Reject(ctx context.Context, id int64) error {
 	submission, err := s.submissionRepository.GetById(ctx, id)
 	if err != nil {
 		return err
@@ -203,7 +203,7 @@ func (s submissionService) Reject(ctx context.Context, id int64) error {
 	return s.submissionRepository.Update(ctx, submission)
 }
 
-func (s submissionService) Cancel(ctx context.Context, submission *entity.Product, req dto.GetProductByIDRequest) error {
+func (s *submissionService) Cancel(ctx context.Context, submission *entity.Product, req dto.GetProductByIDRequest) error {
 	userID := req.UserID
 	if userID == 0 {
 		return errors.New("User ID tidak ditemukan")

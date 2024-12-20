@@ -9,10 +9,16 @@ import (
 	"github.com/mhusainh/FastTix/pkg/response"
 )
 
-type ProductHandler struct {productService service.ProductService}
+type ProductHandler struct{
+	productService service.ProductService
+	tokenService service.TokenService
+}
 
-func NewProductHandler(	productService service.ProductService) ProductHandler {
-	return ProductHandler{productService}
+func NewProductHandler(
+	productService service.ProductService,
+	tokenService service.TokenService,
+	) ProductHandler {
+	return ProductHandler{productService, tokenService}
 }
 
 func (h *ProductHandler) GetProducts(ctx echo.Context) error {
@@ -42,6 +48,28 @@ func (h *ProductHandler) GetProduct(ctx echo.Context) error {
 	}
 
 	return ctx.JSON(http.StatusOK, response.SuccessResponse("Successfully showing a product", product))
+}
+
+func (h *ProductHandler) GetProductByUserId(ctx echo.Context) error {
+	var req dto.GetProductByUserIDRequest
+
+	if err := ctx.Bind(&req); err != nil {
+		return ctx.JSON(http.StatusBadRequest, response.ErrorResponse(http.StatusBadRequest, err.Error()))
+	}
+
+	userID, err := h.tokenService.GetUserIDFromToken(ctx)
+	if err != nil {
+		return ctx.JSON(http.StatusUnauthorized, response.ErrorResponse(http.StatusUnauthorized, err.Error()))
+	}
+
+	req.UserID = userID
+
+	products, err := h.productService.GetByUserId(ctx.Request().Context(), req)
+	if err != nil {
+		return ctx.JSON(http.StatusInternalServerError, response.ErrorResponse(http.StatusInternalServerError, err.Error()))
+	}
+
+	return ctx.JSON(http.StatusOK, response.SuccessResponse("Successfully showing all user products", products))
 }
 
 func (h *ProductHandler) DeleteProduct(ctx echo.Context) error {

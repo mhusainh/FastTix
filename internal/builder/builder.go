@@ -28,7 +28,7 @@ func BuilderPublicRoutes(cfg *config.Config, db *gorm.DB) []route.Route {
 	//end
 
 	//handler
-	productHandler := handler.NewProductHandler(productService)
+	productHandler := handler.NewProductHandler(productService, tokenService)
 	userHandler := handler.NewUserHandler(tokenService, userService)
 	submissionHandler := handler.NewSubmissionHandler(submissionService, tokenService)
 	ticketHandler := handler.NewTicketHandler(ticketService)
@@ -44,6 +44,7 @@ func BuilderPrivateRoutes(cfg *config.Config, db *gorm.DB) []route.Route {
 	transactionRepository := repository.NewTransactionRepository(db)
 	submissionRepository := repository.NewSubmissionRepository(db)
 	ticketRepository := repository.NewTicketRepository(db)
+	transactionRepository = repository.NewTransactionRepository(db)
 	//end
 
 	//service
@@ -52,14 +53,16 @@ func BuilderPrivateRoutes(cfg *config.Config, db *gorm.DB) []route.Route {
 	userService := service.NewUserService(tokenService, cfg, userRepository)
 	submissionService := service.NewSubmissionService(cfg, submissionRepository, transactionRepository, userRepository, productRepository)
 	ticketService := service.NewTicketService(ticketRepository)
+	transactionService := service.NewTransactionService(transactionRepository)
 	//end
 
 	//handler
-	productHandler := handler.NewProductHandler(productService)
+	productHandler := handler.NewProductHandler(productService, tokenService)
 	userHandler := handler.NewUserHandler(tokenService, userService)
 	submissionHandler := handler.NewSubmissionHandler(submissionService, tokenService)
 	ticketHandler := handler.NewTicketHandler(ticketService)
+	transactionHandler := handler.NewTransactionHandler(transactionService, tokenService)
 	//end
 
-	return router.PrivateRoutes(productHandler, userHandler, submissionHandler, ticketHandler)
+	return router.PrivateRoutes(productHandler, userHandler, submissionHandler, ticketHandler, transactionHandler)
 }

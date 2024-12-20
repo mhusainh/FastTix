@@ -6,7 +6,8 @@ type GetProductByIDRequest struct {
 }
 
 type GetProductByUserIDRequest struct {
-	UserID int64 `param:"user_id" validate:"required"`
+	UserID int64 `json:"user_id" validate:"required"`
+	Order string `query:"order" validate:"required"`
 }
 
 type CreateProductRequest struct {

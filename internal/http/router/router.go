@@ -10,7 +10,7 @@ import (
 var (
 	adminOnly = []string{"Administrator"}
 	userOnly  = []string{"User"}
-	allRoles = []string{"Administrator", "User"}
+	allRoles  = []string{"Administrator", "User"}
 )
 
 func PublicRoutes(
@@ -63,6 +63,7 @@ func PrivateRoutes(
 	userHandler handler.UserHandler,
 	submissionHandler handler.SubmissionHandler,
 	ticketHandler handler.TicketHandler,
+	transactionHandler handler.TransactionHandler,
 ) []route.Route {
 	return []route.Route{
 		{
@@ -81,11 +82,11 @@ func PrivateRoutes(
 			Method:  http.MethodPut,
 			Path:    "/submissions/:id",
 			Handler: submissionHandler.UpdateSubmissionByUser,
-			Roles:   userOnly,	
+			Roles:   userOnly,
 		},
 		{
-			Method:  http.MethodPut,
-			Path:    "/submissions/:id/cancel",
+			Method:  http.MethodDelete,
+			Path:    "/submissions/:id",
 			Handler: submissionHandler.CancelSubmission,
 			Roles:   userOnly,
 		},
@@ -109,6 +110,12 @@ func PrivateRoutes(
 		},
 		{
 			Method:  http.MethodGet,
+			Path:    "/products/user",
+			Handler: productHandler.GetProductByUserId,
+			Roles:   userOnly,
+		},
+		{
+			Method:  http.MethodGet,
 			Path:    "/products",
 			Handler: productHandler.GetProducts,
 			Roles:   adminOnly,
@@ -123,6 +130,24 @@ func PrivateRoutes(
 			Method:  http.MethodDelete,
 			Path:    "/products'////////////////:id",
 			Handler: productHandler.DeleteProduct,
+		},
+		{
+			Method:  http.MethodGet,
+			Path:    "/transactions/user",
+			Handler: transactionHandler.GetTransactionByUserId,
+			Roles:   userOnly,
+		},
+		{
+			Method:  http.MethodGet,
+			Path:    "/transactions",
+			Handler: transactionHandler.GetTransactions,
+			Roles:   adminOnly,
+		},
+		{
+			Method:  http.MethodGet,
+			Path:    "/transactions/:id",
+			Handler: transactionHandler.GetTransaction,
+			Roles:   adminOnly,
 		},
 	}
 }

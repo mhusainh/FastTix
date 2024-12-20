@@ -12,6 +12,7 @@ import (
 type ProductRepository interface {
 	GetAll(ctx context.Context, req dto.GetAllProductsRequest) ([]entity.Product, error)
 	GetById(ctx context.Context, id int64) (*entity.Product, error)
+	GetByUserId(ctx context.Context, req dto.GetProductByUserIDRequest) ([]entity.Product, error)
 	GetByName(ctx context.Context, name string) (*entity.Product, error)
 	Delete(ctx context.Context, product *entity.Product) error
 }
@@ -64,8 +65,24 @@ func (r *productRepository) GetByName(ctx context.Context, name string) (*entity
 	return result, nil
 }
 
+func (r *productRepository) GetByUserId(ctx context.Context, req dto.GetProductByUserIDRequest) ([]entity.Product, error) {
+	products := make([]entity.Product, 0)
+	query := r.db.WithContext(ctx).Where("user_id = ?", req.UserID)
+	if req.Order != "" {
+		query = query.Order("created_at " + req.Order)
+	}
+	if err := query.Find(&products).Error; err != nil {
+		return nil, err
+	}
+	return products, nil
+}
+
 func (r *productRepository) Create(ctx context.Context, product *entity.Product) error {
 	return r.db.WithContext(ctx).Create(&product).Error
+}
+
+func (r *productRepository) Update(ctx context.Context, product *entity.Product) error {
+	return r.db.WithContext(ctx).Updates(&product).Error
 }
 
 func (r *productRepository) Delete(ctx context.Context, product *entity.Product) error {
