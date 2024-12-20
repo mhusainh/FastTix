@@ -12,13 +12,15 @@ import (
 type TransactionHandler struct {
 	transactionService service.TransactionService
 	tokenService       service.TokenService
+	paymentService     service.PaymentService
 }
 
 func NewTransactionHandler(
 	transactionService service.TransactionService,
 	tokenService service.TokenService,
-	) TransactionHandler {
-	return TransactionHandler{transactionService, tokenService}
+	paymentService service.PaymentService,
+) TransactionHandler {
+	return TransactionHandler{transactionService, tokenService, paymentService}
 }
 
 func (h *TransactionHandler) GetTransactions(ctx echo.Context) error {

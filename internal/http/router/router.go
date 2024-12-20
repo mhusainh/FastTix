@@ -64,8 +64,14 @@ func PrivateRoutes(
 	submissionHandler handler.SubmissionHandler,
 	ticketHandler handler.TicketHandler,
 	transactionHandler handler.TransactionHandler,
+	paymentHandler handler.PaymentHandler,
 ) []route.Route {
 	return []route.Route{
+		{
+			Method:  http.MethodPost,
+			Path:    "/payment",
+			Handler: paymentHandler.CreatePayment,
+		},
 		{
 			Method:  http.MethodGet,
 			Path:    "/submissions/:id",

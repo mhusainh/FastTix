@@ -45,6 +45,7 @@ func BuilderPrivateRoutes(cfg *config.Config, db *gorm.DB) []route.Route {
 	submissionRepository := repository.NewSubmissionRepository(db)
 	ticketRepository := repository.NewTicketRepository(db)
 	transactionRepository = repository.NewTransactionRepository(db)
+	paymentRepository := repository.NewPaymentRequestRepository(db)
 	//end
 
 	//service
@@ -54,6 +55,7 @@ func BuilderPrivateRoutes(cfg *config.Config, db *gorm.DB) []route.Route {
 	submissionService := service.NewSubmissionService(cfg, submissionRepository, transactionRepository, userRepository, productRepository)
 	ticketService := service.NewTicketService(ticketRepository)
 	transactionService := service.NewTransactionService(cfg, transactionRepository, userRepository, productRepository)
+	paymentService := service.NewPaymentService(paymentRepository, cfg, userRepository)
 	//end
 
 	//handler
@@ -61,8 +63,9 @@ func BuilderPrivateRoutes(cfg *config.Config, db *gorm.DB) []route.Route {
 	userHandler := handler.NewUserHandler(tokenService, userService)
 	submissionHandler := handler.NewSubmissionHandler(submissionService, tokenService)
 	ticketHandler := handler.NewTicketHandler(ticketService)
-	transactionHandler := handler.NewTransactionHandler(transactionService, tokenService)
+	transactionHandler := handler.NewTransactionHandler(transactionService, tokenService, paymentService)
+	paymentHandler := handler.NewPaymentHandler(paymentService, tokenService)
 	//end
 
-	return router.PrivateRoutes(productHandler, userHandler, submissionHandler, ticketHandler, transactionHandler)
+	return router.PrivateRoutes(productHandler, userHandler, submissionHandler, ticketHandler, transactionHandler, paymentHandler)
 }
