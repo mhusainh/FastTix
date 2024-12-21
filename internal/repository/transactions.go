@@ -14,6 +14,9 @@ type TransactionRepository interface {
 	GetByUserId(ctx context.Context, req dto.GetTransactionByUserIDRequest) ([]entity.Transaction, error)
 	Create(ctx context.Context, transaction *entity.Transaction) error
 	Update(ctx context.Context, transaction *entity.Transaction) error
+	GetByOrderID(ctx context.Context, orderID string) (*entity.Transaction, error)
+	GetOrderIdByToken(ctx context.Context, token string) (string, error)
+	GetTransactionByToken(ctx context.Context, token string) (*entity.Transaction, error)
 }
 
 type transactionRepository struct {
@@ -58,4 +61,28 @@ func (r *transactionRepository) Create(ctx context.Context, transaction *entity.
 
 func (r *transactionRepository) Update(ctx context.Context, transaction *entity.Transaction) error {
 	return r.db.WithContext(ctx).Updates(&transaction).Error
+}
+
+func (r *transactionRepository) GetByOrderID(ctx context.Context, orderID string) (*entity.Transaction, error) {
+	result := new(entity.Transaction)
+	if err := r.db.WithContext(ctx).Where("order_id = ?", orderID).First(&result).Error; err != nil {
+		return nil, err
+	}
+	return result, nil
+}
+
+func (r *transactionRepository) GetOrderIdByToken(ctx context.Context, token string) (string, error) {
+	result := new(entity.Transaction)
+	if err := r.db.WithContext(ctx).Where("verification_token = ?", token).First(&result).Error; err != nil {
+		return "", err
+	}
+	return result.OrderID, nil
+}
+
+func (r *transactionRepository) GetTransactionByToken(ctx context.Context, token string) (*entity.Transaction, error) {
+	result := new(entity.Transaction)
+	if err := r.db.WithContext(ctx).Where("verification_token = ?", token).First(&result).Error; err != nil {
+		return nil, err
+	}
+	return result, nil
 }

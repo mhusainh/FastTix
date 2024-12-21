@@ -12,6 +12,7 @@ type UserRepository interface {
 	GetById(ctx context.Context, id int64) (*entity.User, error)
 	GetByEmail(ctx context.Context, email string) (*entity.User, error)
 	Create(ctx context.Context, user *entity.User) error
+	GetEmailByUserID(ctx context.Context, userID int64) (*entity.User, error)
 	Update(ctx context.Context, user *entity.User) error
 	Delete(ctx context.Context, user *entity.User) error
 	GetByResetPasswordToken(ctx context.Context, token string) (*entity.User, error)
@@ -73,6 +74,14 @@ func (r *userRepository) GetByResetPasswordToken(ctx context.Context, token stri
 func (r *userRepository) GetByVerifyEmailToken(ctx context.Context, token string) (*entity.User, error) {
 	result := new(entity.User)
 	if err := r.db.WithContext(ctx).Where("verify_email_token = ?", token).First(&result).Error; err != nil {
+		return nil, err
+	}
+	return result, nil
+}
+
+func (r *userRepository) GetEmailByUserID(ctx context.Context, userID int64) (*entity.User, error) {
+	result := new(entity.User)
+	if err := r.db.WithContext(ctx).Where("id = ?", userID).First(&result).Error; err != nil {
 		return nil, err
 	}
 	return result, nil

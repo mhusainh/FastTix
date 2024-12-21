@@ -18,8 +18,14 @@ func PublicRoutes(
 	productHandler handler.ProductHandler,
 	submission handler.SubmissionHandler,
 	ticketHandler handler.TicketHandler,
+	webhookHandler handler.WebhookHandler,
 ) []route.Route {
 	return []route.Route{
+		{
+			Method:  http.MethodPost,
+			Path:    "/webhook/midtrans",
+			Handler: webhookHandler.MidtransWebhook,
+		},
 		{
 			Method:  http.MethodGet,
 			Path:    "/submissions",
@@ -81,6 +87,12 @@ func PrivateRoutes(
 		{
 			Method:  http.MethodPost,
 			Path:    "/submissions",
+			Handler: submissionHandler.CheckoutSubmission,
+			Roles:   userOnly,
+		},
+		{
+			Method:  http.MethodGet,
+			Path:    "/submissions/token/:tokenid",
 			Handler: submissionHandler.CreateSubmission,
 			Roles:   userOnly,
 		},

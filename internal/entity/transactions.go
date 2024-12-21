@@ -11,6 +11,9 @@ type Transaction struct {
 	TransactionAmount   float64   `json:"transaction_amount"`
 	CreatedAt           time.Time `json:"created_at"`
 	UpdatedAt           time.Time `json:"updated_at"`
+	OrderID             string    `json:"order_id"`
+	IsVerified          int       `json:"is_verified"`
+	VerificationToken   string    `json:"verification_token"`
 }
 
 func (Transaction) TableName() string {

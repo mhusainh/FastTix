@@ -17,10 +17,12 @@ type VerifyPaymentRequest struct {
 }
 
 type CreatePaymentRequest struct {
-	OrderID string `json:"order_id" form:"order_id"`
-	Amount  int    `json:"amount" form:"amount"`
-	Email   string `json:"email" form:"email"`
-	UserID  int64  `json:"user_id"`
+	VerificationToken string  `json:"verification_token" form:"verification_token"`
+	OrderID           string  `json:"order_id" form:"order_id"`
+	Amount            float64 `json:"amount" form:"amount"`
+	Email             string  `json:"email" form:"email"`
+	UserID            int64   `json:"user_id"`
+	NameProduct       string  `json:"name_product" form:"name_product"`
 }
 
 type WebhookRequest struct {

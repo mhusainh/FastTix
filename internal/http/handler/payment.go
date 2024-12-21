@@ -32,7 +32,7 @@ func (h *PaymentHandler) CreatePayment(ctx echo.Context) error {
 
 	req.UserID = userID
 
-	paymentID, err := h.paymentService.CreatePayment(ctx.Request().Context(), req)
+	paymentID, err := h.paymentService.CreateTokenPayment(ctx.Request().Context(), req)
 	if err != nil {
 		return ctx.JSON(http.StatusInternalServerError, response.ErrorResponse(http.StatusInternalServerError, err.Error()))
 	}

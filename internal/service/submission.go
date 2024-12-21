@@ -21,6 +21,7 @@ type SubmissionService interface {
 	Approve(ctx context.Context, id int64) error
 	Reject(ctx context.Context, id int64) error
 	Cancel(ctx context.Context, submission *entity.Product, req dto.GetProductByIDRequest) error
+	HandleMidtransNotification(ctx context.Context, notif map[string]interface{}) error
 }
 
 type submissionService struct {
@@ -107,6 +108,7 @@ func (s *submissionService) Create(ctx context.Context, req dto.CreateProductReq
 		ProductQuantity:    req.ProductQuantity,
 		ProductType:        "available",
 		ProductStatus:      req.ProductStatus,
+		OrderID:            t.OrderID,
 		UserID:             userID,
 	}
 
@@ -124,6 +126,8 @@ func (s *submissionService) Create(ctx context.Context, req dto.CreateProductReq
 			TransactionQuantity: 1,
 			TransactionAmount:   TransactionAmount,
 			TransactionStatus:   "pending",
+			OrderID:             t.OrderID,
+			VerificationToken:   t.VerificationToken,
 		}
 		if err := s.transactionRepository.Create(ctx, transaction); err != nil {
 			return err
@@ -219,4 +223,78 @@ func (s *submissionService) Cancel(ctx context.Context, submission *entity.Produ
 		return errors.New("Pengajuan ini sudah tidak dapat dicancel karena sudah diterima atau ditolak oleh admin")
 	}
 	return s.submissionRepository.Delete(ctx, submission)
+}
+
+func (s *submissionService) HandleMidtransNotification(ctx context.Context, notif map[string]interface{}) error {
+	orderID, ok := notif["order_id"].(string)
+	if !ok {
+		return errors.New("no order_id in notification")
+	}
+	transactionStatus, ok := notif["transaction_status"].(string)
+	if !ok {
+		return errors.New("no transaction_status in notification")
+	}
+
+	trans, err := s.transactionRepository.GetByOrderID(ctx, orderID)
+	if err != nil {
+		return err
+	}
+	product, err := s.productRepository.GetById(ctx, trans.ProductID)
+	if err != nil {
+		return err
+	}
+	user, err := s.userRepository.GetById(ctx, trans.UserID)
+	if err != nil {
+		return err
+	}
+
+	if transactionStatus == "capture" || transactionStatus == "settlement" || transactionStatus == "success" {
+		// Payment successful
+		product.ProductStatus = "pending"
+		templatePath := "./templates/email/notif-submission.html"
+		tmpl, err := template.ParseFiles(templatePath)
+		if err != nil {
+			return err
+		}
+
+		var body bytes.Buffer
+		if err := tmpl.Execute(&body, nil); err != nil {
+			return err
+		}
+
+		m := gomail.NewMessage()
+		m.SetHeader("From", s.cfg.SMTPConfig.Username)
+		m.SetHeader("To", user.Email)
+		m.SetHeader("Subject", "Fast Tix : Submission Event!")
+		m.SetBody("text/html", body.String())
+
+		d := gomail.NewDialer(
+			s.cfg.SMTPConfig.Host,
+			s.cfg.SMTPConfig.Port,
+			s.cfg.SMTPConfig.Username,
+			s.cfg.SMTPConfig.Password,
+		)
+
+		// Send the email to Bob, Cora and Dan.
+		if err := d.DialAndSend(m); err != nil {
+			panic(err)
+		}
+		if err := s.productRepository.Update(ctx, product); err != nil {
+			return err
+		}
+		trans.TransactionStatus = "success"
+
+		if err := s.transactionRepository.Update(ctx, trans); err != nil {
+			return err
+		}
+	} else if transactionStatus == "deny" || transactionStatus == "cancel" || transactionStatus == "expire" {
+		// Payment failed
+		trans.TransactionStatus = "failed"
+		if err := s.transactionRepository.Update(ctx, trans); err != nil {
+			return err
+		}
+		// Optionally, send a failure notification email
+	}
+
+	return nil
 }

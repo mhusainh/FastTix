@@ -9,15 +9,15 @@ import (
 	"github.com/mhusainh/FastTix/pkg/response"
 )
 
-type ProductHandler struct{
+type ProductHandler struct {
 	productService service.ProductService
-	tokenService service.TokenService
+	tokenService   service.TokenService
 }
 
 func NewProductHandler(
 	productService service.ProductService,
 	tokenService service.TokenService,
-	) ProductHandler {
+) ProductHandler {
 	return ProductHandler{productService, tokenService}
 }
 
