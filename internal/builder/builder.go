@@ -36,9 +36,10 @@ func BuilderPublicRoutes(cfg *config.Config, db *gorm.DB) []route.Route {
 	userHandler := handler.NewUserHandler(tokenService, userService)
 	submissionHandler := handler.NewSubmissionHandler(submissionService, tokenService, productService, transactionService, userService, notificationService, paymentService)
 	ticketHandler := handler.NewTicketHandler(ticketService)
+	webhookHanlder := handler.NewWebhookHandler(paymentService, submissionService, transactionRepository)
 	//end
 
-	return router.PublicRoutes(userHandler, productHandler, submissionHandler, ticketHandler)
+	return router.PublicRoutes(userHandler, productHandler, submissionHandler, ticketHandler, webhookHanlder)
 }
 
 func BuilderPrivateRoutes(cfg *config.Config, db *gorm.DB) []route.Route {
@@ -57,7 +58,7 @@ func BuilderPrivateRoutes(cfg *config.Config, db *gorm.DB) []route.Route {
 	userService := service.NewUserService(tokenService, cfg, userRepository)
 	submissionService := service.NewSubmissionService(cfg, submissionRepository, transactionRepository, productRepository, userRepository)
 	ticketService := service.NewTicketService(ticketRepository)
-	transactionService := service.NewTransactionService(cfg, transactionRepository,productRepository)
+	transactionService := service.NewTransactionService(cfg, transactionRepository, productRepository)
 	notificationService := service.NewNotificationService(notificationRepository)
 	paymentService := service.NewPaymentService(cfg, userRepository, transactionRepository, productRepository)
 	//end

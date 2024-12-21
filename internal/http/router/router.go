@@ -18,8 +18,19 @@ func PublicRoutes(
 	productHandler handler.ProductHandler,
 	submission handler.SubmissionHandler,
 	ticketHandler handler.TicketHandler,
+	webhookHandler handler.WebhookHandler,
 ) []route.Route {
 	return []route.Route{
+		{
+			Method:  http.MethodPost,
+			Path:    "/webhook/midtrans",
+			Handler: webhookHandler.MidtransWebhook,
+		},
+		{
+			Method:  http.MethodGet,
+			Path:    "/checkin/:order_id",
+			Handler: webhookHandler.CheckinWebhook,
+		},
 		{
 			Method:  http.MethodGet,
 			Path:    "/submissions",
@@ -76,9 +87,22 @@ func PrivateRoutes(
 		{
 			Method:  http.MethodPost,
 			Path:    "/submissions",
-			Handler: submissionHandler.CreateSubmission,
+			Handler: submissionHandler.CreateSubmission, // buat submission baru
 			Roles:   userOnly,
 		},
+		{
+			Method:  http.MethodGet,
+			Path:    "/payment/checkout/:tokenid", // payment checkout
+			Handler: submissionHandler.CheckoutSubmission,
+			Roles:   userOnly,
+		},
+		{
+			Method:  http.MethodPost,
+			Path:    "/tickets/:product_id/checkout",
+			Handler: transactionHandler.CheckoutTicket, // beli tiket
+			Roles:   userOnly,
+		},
+
 		{
 			Method:  http.MethodPut,
 			Path:    "/submissions/:id",
@@ -128,34 +152,12 @@ func PrivateRoutes(
 			Roles:   adminOnly,
 		},
 		{
-			Method:  http.MethodDelete,
-			Path:    "/products'////////////////:id",
-			Handler: productHandler.DeleteProduct,
-		},
-		{
 			Method:  http.MethodGet,
 			Path:    "/transactions/user",
 			Handler: transactionHandler.GetTransactionByUserId,
 			Roles:   userOnly,
 		},
-		{
-			Method:  http.MethodPut,
-			Path:    "/submissions/:id/payment",
-			Handler: transactionHandler.PaymentSubmission,
-			Roles:   userOnly,
-		},
-		{
-			Method:  http.MethodPost,
-			Path:    "/tickets/:product_id/checkout",
-			Handler: transactionHandler.CheckoutTicket,
-			Roles:   userOnly,
-		},
-		{
-			Method:  http.MethodPut,
-			Path:    "/tickets/:id/payment",
-			Handler: transactionHandler.PaymentTicket,
-			Roles:   userOnly,
-		},
+
 		{
 			Method:  http.MethodGet,
 			Path:    "/transactions",

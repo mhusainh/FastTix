@@ -12,6 +12,7 @@ CREATE TABLE IF NOT EXISTS products (
     product_type ENUM('available', 'unavailable') NOT NULL,
     product_status ENUM('unpaid','pending', 'rejected', 'accepted') NOT NULL,
     product_category VARCHAR(255) NOT NULL,
+    order_id VARCHAR(255) NOT NULL UNIQUE,
     user_id INT NOT NULL,
     CONSTRAINT fk_user_products FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE ON UPDATE CASCADE,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
