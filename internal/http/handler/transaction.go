@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"net/http"
 	"strconv"
-	"time"
 
 	"github.com/labstack/echo/v4"
 	"github.com/mhusainh/FastTix/internal/http/dto"
@@ -103,9 +102,13 @@ func (h *TransactionHandler) CheckoutTicket(ctx echo.Context) error {
 	if Product == nil {
 		return ctx.JSON(http.StatusBadRequest, response.ErrorResponse(http.StatusBadRequest, "Product not found"))
 	}
+	// sudah lewat dari tanggal dan waktu sekarang di maka return tiket tidak bisa dibeli karena acara sedang atau sudah berlangsung{
+	// if Product.ProductDate && Product.ProductTime ==
+
+	// }
 	req.TransactionAmount = Product.ProductPrice * float64(req.TransactionQuantity)
 	req.UserID = userID
-	req.OrderID = fmt.Sprintf("order_id-%d", req.ProductID, time.Now().Unix())
+	req.OrderID = fmt.Sprintf("order_id-%s", utils.RandomString(10))
 	err = h.transactionService.Create(ctx.Request().Context(), req)
 	if err != nil {
 		return ctx.JSON(http.StatusInternalServerError, response.ErrorResponse(http.StatusInternalServerError, err.Error()))

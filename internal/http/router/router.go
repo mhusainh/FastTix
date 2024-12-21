@@ -28,6 +28,11 @@ func PublicRoutes(
 		},
 		{
 			Method:  http.MethodGet,
+			Path:    "/checkin/:order_id",
+			Handler: webhookHandler.CheckinWebhook,
+		},
+		{
+			Method:  http.MethodGet,
 			Path:    "/submissions",
 			Handler: submission.GetSubmissions,
 		},

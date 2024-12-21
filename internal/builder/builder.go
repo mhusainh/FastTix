@@ -34,7 +34,7 @@ func BuilderPublicRoutes(cfg *config.Config, db *gorm.DB) []route.Route {
 
 	submissionHandler := handler.NewSubmissionHandler(submissionService, tokenService, paymentService, transactionRepository, userRepository)
 	ticketHandler := handler.NewTicketHandler(ticketService)
-	webhookHandler := handler.NewWebhookHandler(paymentService, submissionService)
+	webhookHandler := handler.NewWebhookHandler(paymentService, submissionService, transactionRepository)
 	//end
 
 	return router.PublicRoutes(userHandler, productHandler, submissionHandler, ticketHandler, webhookHandler)

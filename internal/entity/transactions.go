@@ -14,6 +14,7 @@ type Transaction struct {
 	OrderID             string    `json:"order_id"`
 	IsVerified          int       `json:"is_verified"`
 	VerificationToken   string    `json:"verification_token"`
+	CheckIn             int       `json:"checkin"`
 }
 
 func (Transaction) TableName() string {

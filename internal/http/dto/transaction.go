@@ -19,6 +19,7 @@ type CreateTransactionRequest struct {
 	IsVerified          int     `json:"is_verified"`
 	NameProduct         string  `json:"name_product" validate:"required"`
 	OrderID             string  `json:"order_id"`
+	CheckIn             int     `json:"checkin"`
 }
 
 type UpdateTransactionRequest struct {

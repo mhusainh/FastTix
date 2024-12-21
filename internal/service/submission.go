@@ -128,6 +128,7 @@ func (s *submissionService) Create(ctx context.Context, req dto.CreateProductReq
 			TransactionStatus:   "pending",
 			OrderID:             t.OrderID,
 			VerificationToken:   t.VerificationToken,
+			CheckIn:             1,
 		}
 		if err := s.transactionRepository.Create(ctx, transaction); err != nil {
 			return err
