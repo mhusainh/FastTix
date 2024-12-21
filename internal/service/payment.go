@@ -206,7 +206,7 @@ func (s *paymentService) sendTicketEmail(email string, product *entity.Product, 
 		return err
 	}
 
-	qrData := fmt.Sprintf("localhost:8080/api/v1/qrcode?order_id=%s", orderID)
+	qrData := fmt.Sprintf("https://00d6-139-195-122-235.ngrok-free.app/api/v1/checkin/%s", orderID)
 	qrBytes, err := s.generateQRCode(qrData)
 	if err != nil {
 		log.Printf("ERROR: Failed to generate QR code: %v", err)
@@ -219,12 +219,12 @@ func (s *paymentService) sendTicketEmail(email string, product *entity.Product, 
 	m.SetHeader("Subject", "Fast Tix : Ticket Purchased")
 
 	// Define a unique Content-ID for the QR code
-	contentID := "https://28b2-139-0-237-234.ngrok-free.app/api/v1/checkin/" // You can generate a unique ID if needed
+	// contentID := fmt.Sprintf("https://00d6-139-195-122-235.ngrok-free.app/api/v1/checkin/%s", orderID), // You can generate a unique ID if needed
 
 	// Attach the QR code as an inline image
 	m.Attach("qrcode.png",
 		gomail.SetHeader(map[string][]string{
-			"Content-ID":          {fmt.Sprintf("<%s%s>", contentID, orderID)},
+			"Content-ID":          {fmt.Sprintf("<%s>", qrData)},
 			"Content-Disposition": {"inline; filename=\"qrcode.png\""},
 		}),
 		gomail.SetCopyFunc(func(w io.Writer) error {
@@ -253,7 +253,7 @@ func (s *paymentService) sendTicketEmail(email string, product *entity.Product, 
 		ProductLocation: product.ProductAddress,
 		ProductID:       product.ID,
 		Name:            fullName,
-		QRCodeCID:       contentID,
+		QRCodeCID:       qrData,
 	}
 
 	var bodyBuffer bytes.Buffer
