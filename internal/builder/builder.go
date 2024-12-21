@@ -17,20 +17,23 @@ func BuilderPublicRoutes(cfg *config.Config, db *gorm.DB) []route.Route {
 	transactionRepository := repository.NewTransactionRepository(db)
 	submissionRepository := repository.NewSubmissionRepository(db)
 	ticketRepository := repository.NewTicketRepository(db)
+	notificationRepository := repository.NewNotificationRepository(db)
 	//end
 
 	//service
 	tokenService := service.NewTokenService(cfg.JWTConfig.SecretKey)
 	productService := service.NewProductService(productRepository)
 	userService := service.NewUserService(tokenService, cfg, userRepository)
-	submissionService := service.NewSubmissionService(cfg, submissionRepository, transactionRepository, userRepository, productRepository)
+	submissionService := service.NewSubmissionService(cfg, submissionRepository, transactionRepository, productRepository)
 	ticketService := service.NewTicketService(ticketRepository)
+	transactionService := service.NewTransactionService(cfg, transactionRepository, productRepository)
+	notificationService := service.NewNotificationService(notificationRepository)
 	//end
 
 	//handler
 	productHandler := handler.NewProductHandler(productService, tokenService)
 	userHandler := handler.NewUserHandler(tokenService, userService)
-	submissionHandler := handler.NewSubmissionHandler(submissionService, tokenService)
+	submissionHandler := handler.NewSubmissionHandler(submissionService, tokenService, productService, transactionService, userService, notificationService)
 	ticketHandler := handler.NewTicketHandler(ticketService)
 	//end
 
@@ -45,24 +48,27 @@ func BuilderPrivateRoutes(cfg *config.Config, db *gorm.DB) []route.Route {
 	submissionRepository := repository.NewSubmissionRepository(db)
 	ticketRepository := repository.NewTicketRepository(db)
 	transactionRepository = repository.NewTransactionRepository(db)
+	notificationRepository := repository.NewNotificationRepository(db)
 	//end
 
 	//service
 	tokenService := service.NewTokenService(cfg.JWTConfig.SecretKey)
 	productService := service.NewProductService(productRepository)
 	userService := service.NewUserService(tokenService, cfg, userRepository)
-	submissionService := service.NewSubmissionService(cfg, submissionRepository, transactionRepository, userRepository, productRepository)
+	submissionService := service.NewSubmissionService(cfg, submissionRepository, transactionRepository, productRepository)
 	ticketService := service.NewTicketService(ticketRepository)
-	transactionService := service.NewTransactionService(cfg, transactionRepository, userRepository, productRepository)
+	transactionService := service.NewTransactionService(cfg, transactionRepository,productRepository)
+	notificationService := service.NewNotificationService(notificationRepository)
 	//end
 
 	//handler
 	productHandler := handler.NewProductHandler(productService, tokenService)
 	userHandler := handler.NewUserHandler(tokenService, userService)
-	submissionHandler := handler.NewSubmissionHandler(submissionService, tokenService)
+	submissionHandler := handler.NewSubmissionHandler(submissionService, tokenService, productService, transactionService, userService, notificationService)
 	ticketHandler := handler.NewTicketHandler(ticketService)
-	transactionHandler := handler.NewTransactionHandler(transactionService, tokenService)
+	transactionHandler := handler.NewTransactionHandler(transactionService, tokenService, userService, productService, notificationService)
+	notificationHandler := handler.NewNotificationHandler(notificationService, tokenService, userService)
 	//end
 
-	return router.PrivateRoutes(productHandler, userHandler, submissionHandler, ticketHandler, transactionHandler)
+	return router.PrivateRoutes(productHandler, userHandler, submissionHandler, ticketHandler, transactionHandler, notificationHandler)
 }

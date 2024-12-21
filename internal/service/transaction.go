@@ -3,7 +3,6 @@ package service
 import (
 	"bytes"
 	"context"
-	"errors"
 	"text/template"
 
 	"github.com/mhusainh/FastTix/config"
@@ -17,25 +16,23 @@ type TransactionService interface {
 	GetAll(ctx context.Context) ([]entity.Transaction, error)
 	GetById(ctx context.Context, id int64) (*entity.Transaction, error)
 	GetByUserId(ctx context.Context, req dto.GetTransactionByUserIDRequest) ([]entity.Transaction, error)
-	Create(ctx context.Context, req dto.CreateTransactionRequest) error
-	PaymentTicket(ctx context.Context, req dto.UpdateTransactionRequest) error
-	PaymentSubmission(ctx context.Context, req dto.UpdateTransactionRequest) error
+	Create(ctx context.Context, req dto.CreateTransactionRequest, user *entity.User, product *entity.Product) (*entity.Transaction, error)
+	PaymentTicket(ctx context.Context, req dto.UpdateTransactionRequest, user *entity.User, product *entity.Product, transaction *entity.Transaction) (*entity.Transaction, error)
+	PaymentSubmission(ctx context.Context, req dto.UpdateTransactionRequest, user *entity.User, product *entity.Product, transaction *entity.Transaction) (*entity.Transaction, error)
 }
 
 type transactionService struct {
 	cfg                   *config.Config
 	transactionRepository repository.TransactionRepository
-	userRepository        repository.UserRepository
 	productRepository     repository.ProductRepository
 }
 
 func NewTransactionService(
 	cfg *config.Config,
 	transactionRepository repository.TransactionRepository,
-	userRepository repository.UserRepository,
 	productRepository repository.ProductRepository,
 ) TransactionService {
-	return &transactionService{cfg, transactionRepository, userRepository, productRepository}
+	return &transactionService{cfg, transactionRepository, productRepository}
 }
 
 func (s *transactionService) GetAll(ctx context.Context) ([]entity.Transaction, error) {
@@ -50,26 +47,13 @@ func (s *transactionService) GetByUserId(ctx context.Context, req dto.GetTransac
 	return s.transactionRepository.GetByUserId(ctx, req)
 }
 
-func (s *transactionService) Create(ctx context.Context, req dto.CreateTransactionRequest) error {
-	userID := req.UserID
-	if userID == 0 {
-		return errors.New("user id tidak ditemukan")
-	}
-	user, err := s.userRepository.GetById(ctx, userID)
-	if err != nil {
-		return err
-	}
-	product, err := s.productRepository.GetById(ctx, req.ProductID)
-	if err != nil {
-		return err
-	}
-
+func (s *transactionService) Create(ctx context.Context, req dto.CreateTransactionRequest, user *entity.User, product *entity.Product) (*entity.Transaction, error) {
 	if product.ProductPrice == 0 {
 		req.TransactionStatus = "success"
 		templatePath := "./templates/email/ticket.html"
 		tmpl, err := template.ParseFiles(templatePath)
 		if err != nil {
-			return err
+			return nil, err
 		}
 
 		var ReplacerEmail = struct {
@@ -88,7 +72,7 @@ func (s *transactionService) Create(ctx context.Context, req dto.CreateTransacti
 
 		var body bytes.Buffer
 		if err := tmpl.Execute(&body, ReplacerEmail); err != nil {
-			return err
+			return nil, err
 		}
 
 		m := gomail.NewMessage()
@@ -111,7 +95,7 @@ func (s *transactionService) Create(ctx context.Context, req dto.CreateTransacti
 		product.ProductQuantity -= req.TransactionQuantity
 		err = s.productRepository.Update(ctx, product)
 		if err != nil {
-			return err
+			return nil, err
 		}
 	} else {
 		req.TransactionStatus = "pending"
@@ -121,132 +105,90 @@ func (s *transactionService) Create(ctx context.Context, req dto.CreateTransacti
 		TransactionAmount:   req.TransactionAmount,
 		TransactionQuantity: req.TransactionQuantity,
 		TransactionStatus:   req.TransactionStatus,
-		UserID:              userID,
+		TransactionType:     "ticket",
+		UserID:              user.ID,
 		ProductID:           product.ID,
 	}
 
-	return s.transactionRepository.Create(ctx, transaction)
+	return transaction, s.transactionRepository.Create(ctx, transaction)
 }
 
-func (s *transactionService) PaymentTicket(ctx context.Context, req dto.UpdateTransactionRequest) error {
-	userID := req.UserID
-	if userID == 0 {
-		return errors.New("user id tidak ditemukan")
-	}
-	user, err := s.userRepository.GetById(ctx, userID)
-	if err != nil {
-		return err
-	}
-	transaction, err := s.transactionRepository.GetById(ctx, req.ID)
-	if err != nil {
-		return err
-	}
-	product, err := s.productRepository.GetById(ctx, transaction.ProductID)
-	if err != nil {
-		return err
-	}
-
-	product.ProductQuantity -= transaction.TransactionQuantity
-	err = s.productRepository.Update(ctx, product)
-	if err != nil {
-		return err
-	}
+func (s *transactionService) PaymentTicket(ctx context.Context, req dto.UpdateTransactionRequest, user *entity.User, product *entity.Product, transaction *entity.Transaction) (*entity.Transaction, error) {
 	templatePath := "./templates/email/ticket.html"
-		tmpl, err := template.ParseFiles(templatePath)
-		if err != nil {
-			return err
-		}
+	tmpl, err := template.ParseFiles(templatePath)
+	if err != nil {
+		return nil, err
+	}
 
-		var ReplacerEmail = struct {
-			Name    string
-			Address string
-			Time    string
-			Date    string
-			Price   float64
-		}{
-			Name:    product.ProductName,
-			Address: product.ProductAddress,
-			Time:    product.ProductTime,
-			Date:    product.ProductDate,
-			Price:   product.ProductPrice,
-		}
+	var ReplacerEmail = struct {
+		Name    string
+		Address string
+		Time    string
+		Date    string
+		Price   float64
+	}{
+		Name:    product.ProductName,
+		Address: product.ProductAddress,
+		Time:    product.ProductTime,
+		Date:    product.ProductDate,
+		Price:   product.ProductPrice,
+	}
 
-		var body bytes.Buffer
-		if err := tmpl.Execute(&body, ReplacerEmail); err != nil {
-			return err
-		}
+	var body bytes.Buffer
+	if err := tmpl.Execute(&body, ReplacerEmail); err != nil {
+		return nil, err
+	}
 
-		m := gomail.NewMessage()
-		m.SetHeader("From", s.cfg.SMTPConfig.Username)
-		m.SetHeader("To", user.Email)
-		m.SetHeader("Subject", "Fast Tix : Ticket "+product.ProductName+"!")
-		m.SetBody("text/html", body.String())
+	m := gomail.NewMessage()
+	m.SetHeader("From", s.cfg.SMTPConfig.Username)
+	m.SetHeader("To", user.Email)
+	m.SetHeader("Subject", "Fast Tix : Ticket "+product.ProductName+"!")
+	m.SetBody("text/html", body.String())
 
-		d := gomail.NewDialer(
-			s.cfg.SMTPConfig.Host,
-			s.cfg.SMTPConfig.Port,
-			s.cfg.SMTPConfig.Username,
-			s.cfg.SMTPConfig.Password,
-		)
+	d := gomail.NewDialer(
+		s.cfg.SMTPConfig.Host,
+		s.cfg.SMTPConfig.Port,
+		s.cfg.SMTPConfig.Username,
+		s.cfg.SMTPConfig.Password,
+	)
 
-		// Send the email to Bob, Cora and Dan.
-		if err := d.DialAndSend(m); err != nil {
-			panic(err)
-		}
+	// Send the email to Bob, Cora and Dan.
+	if err := d.DialAndSend(m); err != nil {
+		panic(err)
+	}
 	transaction.TransactionStatus = "success"
-	return s.transactionRepository.Update(ctx, transaction)
+	return transaction, s.transactionRepository.Update(ctx, transaction)
 }
 
-func (s *transactionService) PaymentSubmission(ctx context.Context, req dto.UpdateTransactionRequest) error {
-	userID := req.UserID
-	if userID == 0 {
-		return errors.New("user id tidak ditemukan")
-	}
-	user, err := s.userRepository.GetById(ctx, userID)
-	if err != nil {
-		return err
-	}
-	transaction, err := s.transactionRepository.GetById(ctx, req.ID)
-	if err != nil {
-		return err
-	}
-	product, err := s.productRepository.GetById(ctx, transaction.ProductID)
-	if err != nil {
-		return err
-	}
-	product.ProductStatus = "pending"
-	err = s.productRepository.Update(ctx, product)
-	if err != nil {
-		return err
-	}
+func (s *transactionService) PaymentSubmission(ctx context.Context, req dto.UpdateTransactionRequest, user *entity.User, product *entity.Product, transaction *entity.Transaction) (*entity.Transaction, error) {
 	templatePath := "./templates/email/notif-submission.html"
-		tmpl, err := template.ParseFiles(templatePath)
-		if err != nil {
-			return err
-		}
+	tmpl, err := template.ParseFiles(templatePath)
+	if err != nil {
+		return nil, err
+	}
 
-		var body bytes.Buffer
-		if err := tmpl.Execute(&body, nil); err != nil {
-			return err
-		}
+	var body bytes.Buffer
+	if err := tmpl.Execute(&body, nil); err != nil {
+		return nil, err
+	}
 
-		m := gomail.NewMessage()
-		m.SetHeader("From", s.cfg.SMTPConfig.Username)
-		m.SetHeader("To", user.Email)
-		m.SetHeader("Subject", "Fast Tix : Submission Event!")
-		m.SetBody("text/html", body.String())
+	m := gomail.NewMessage()
+	m.SetHeader("From", s.cfg.SMTPConfig.Username)
+	m.SetHeader("To", user.Email)
+	m.SetHeader("Subject", "Fast Tix : Submission Event!")
+	m.SetBody("text/html", body.String())
 
-		d := gomail.NewDialer(
-			s.cfg.SMTPConfig.Host,
-			s.cfg.SMTPConfig.Port,
-			s.cfg.SMTPConfig.Username,
-			s.cfg.SMTPConfig.Password,
-		)
+	d := gomail.NewDialer(
+		s.cfg.SMTPConfig.Host,
+		s.cfg.SMTPConfig.Port,
+		s.cfg.SMTPConfig.Username,
+		s.cfg.SMTPConfig.Password,
+	)
 
-		// Send the email to Bob, Cora and Dan.
-		if err := d.DialAndSend(m); err != nil {
-			panic(err)
-		}
+	// Send the email to Bob, Cora and Dan.
+	if err := d.DialAndSend(m); err != nil {
+		panic(err)
+	}
 	transaction.TransactionStatus = "success"
-	return s.transactionRepository.Update(ctx, transaction)
+	return transaction, s.transactionRepository.Update(ctx, transaction)
 }

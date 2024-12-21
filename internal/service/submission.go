@@ -16,10 +16,10 @@ import (
 type SubmissionService interface {
 	GetAll(ctx context.Context, req dto.GetAllProductsRequest) ([]entity.Product, error)
 	GetById(ctx context.Context, id int64) (*entity.Product, error)
-	Create(ctx context.Context, req dto.CreateProductRequest, t dto.CreateTransactionRequest) error
-	UpdateByUser(ctx context.Context, req dto.UpdateProductRequest) error
-	Approve(ctx context.Context, id int64) error
-	Reject(ctx context.Context, id int64) error
+	Create(ctx context.Context, req dto.CreateProductRequest, t dto.CreateTransactionRequest, user *entity.User) (*entity.Product, error)
+	UpdateByUser(ctx context.Context, req dto.UpdateProductRequest, user *entity.User, submission *entity.Product) (*entity.Product, error)
+	Approve(ctx context.Context, submission *entity.Product) (*entity.Product, error)
+	Reject(ctx context.Context, submission *entity.Product) (*entity.Product, error)
 	Cancel(ctx context.Context, submission *entity.Product, req dto.GetProductByIDRequest) error
 }
 
@@ -27,7 +27,6 @@ type submissionService struct {
 	cfg                   *config.Config
 	submissionRepository  repository.SubmissionRepository
 	transactionRepository repository.TransactionRepository
-	userRepository        repository.UserRepository
 	productRepository     repository.ProductRepository
 }
 
@@ -35,10 +34,9 @@ func NewSubmissionService(
 	cfg *config.Config,
 	submissionRepository repository.SubmissionRepository,
 	transactionRepository repository.TransactionRepository,
-	userRepository repository.UserRepository,
 	productRepository repository.ProductRepository,
 ) SubmissionService {
-	return &submissionService{cfg, submissionRepository, transactionRepository, userRepository, productRepository}
+	return &submissionService{cfg, submissionRepository, transactionRepository, productRepository}
 }
 
 func (s *submissionService) GetAll(ctx context.Context, req dto.GetAllProductsRequest) ([]entity.Product, error) {
@@ -49,30 +47,22 @@ func (s *submissionService) GetById(ctx context.Context, id int64) (*entity.Prod
 	return s.submissionRepository.GetById(ctx, id)
 }
 
-func (s *submissionService) Create(ctx context.Context, req dto.CreateProductRequest, t dto.CreateTransactionRequest) error {
-	userID := req.UserID
-	if userID == 0 {
-		return errors.New("User ID tidak ditemukan")
-	}
-	user, err := s.userRepository.GetById(ctx, userID)
-	if err != nil {
-		return err
-	}
+func (s *submissionService) Create(ctx context.Context, req dto.CreateProductRequest, t dto.CreateTransactionRequest, user *entity.User) (*entity.Product, error) {
 	exist, err := s.productRepository.GetByName(ctx, req.ProductName)
 	if err == nil && exist != nil {
-		return errors.New("Nama event sudah digunakan")
+		return nil, errors.New("Nama event sudah digunakan")
 	}
 	if req.ProductPrice == 0 {
 		req.ProductStatus = "pending"
 		templatePath := "./templates/email/notif-submission.html"
 		tmpl, err := template.ParseFiles(templatePath)
 		if err != nil {
-			return err
+			return nil, err
 		}
 
 		var body bytes.Buffer
 		if err := tmpl.Execute(&body, nil); err != nil {
-			return err
+			return nil, err
 		}
 
 		m := gomail.NewMessage()
@@ -107,11 +97,11 @@ func (s *submissionService) Create(ctx context.Context, req dto.CreateProductReq
 		ProductQuantity:    req.ProductQuantity,
 		ProductType:        "available",
 		ProductStatus:      req.ProductStatus,
-		UserID:             userID,
+		UserID:             user.ID,
 	}
 
 	if err := s.submissionRepository.Create(ctx, submission); err != nil {
-		return err
+		return nil, err
 	}
 
 	ProductID := submission.ID
@@ -120,35 +110,22 @@ func (s *submissionService) Create(ctx context.Context, req dto.CreateProductReq
 	if TransactionAmount != 0 {
 		transaction := &entity.Transaction{
 			ProductID:           ProductID,
-			UserID:              userID,
+			UserID:              user.ID,
 			TransactionQuantity: 1,
 			TransactionAmount:   TransactionAmount,
 			TransactionStatus:   "pending",
+			TransactionType:     "submission",
 		}
 		if err := s.transactionRepository.Create(ctx, transaction); err != nil {
-			return err
+			return nil,err
 		}
 	}
 
-	return nil
+	return submission, nil
 
 }
 
-func (s *submissionService) UpdateByUser(ctx context.Context, req dto.UpdateProductRequest) error {
-	userID := req.UserID
-	if userID == 0 {
-		return errors.New("User ID tidak ditemukan")
-	}
-	submission, err := s.submissionRepository.GetById(ctx, req.ID)
-	if err != nil {
-		return err
-	}
-	if submission.UserID != userID {
-		return errors.New("Anda tidak memiliki hak untuk mengupdate pengajuan ini")
-	}
-	if submission.ProductStatus != "pending" {
-		return errors.New("Pengajuan ini sudah tidak dapat diupdate karena sudah diterima atau ditolak oleh admin")
-	}
+func (s *submissionService) UpdateByUser(ctx context.Context, req dto.UpdateProductRequest, user *entity.User, submission *entity.Product) (*entity.Product, error) {
 	if req.ProductName != "" {
 		submission.ProductName = req.ProductName
 	}
@@ -160,9 +137,6 @@ func (s *submissionService) UpdateByUser(ctx context.Context, req dto.UpdateProd
 	}
 	if req.ProductDate != "" {
 		submission.ProductDate = req.ProductDate
-	}
-	if req.ProductPrice != 0 {
-		submission.ProductPrice = req.ProductPrice
 	}
 	if req.ProductDescription != "" {
 		submission.ProductDescription = req.ProductDescription
@@ -176,47 +150,19 @@ func (s *submissionService) UpdateByUser(ctx context.Context, req dto.UpdateProd
 	if req.ProductType != "" {
 		submission.ProductType = req.ProductType
 	}
-	return s.submissionRepository.Update(ctx, submission)
+	return submission, s.submissionRepository.Update(ctx, submission)
 }
 
-func (s *submissionService) Approve(ctx context.Context, id int64) error {
-	submission, err := s.submissionRepository.GetById(ctx, id)
-	if err != nil {
-		return err
-	}
-	if submission.ProductStatus != "pending" {
-		return errors.New("Pengajuan ini sudah diterima atau ditolak oleh admin")
-	}
+func (s *submissionService) Approve(ctx context.Context, submission *entity.Product) (*entity.Product, error) {
 	submission.ProductStatus = "accepted"
-	return s.submissionRepository.Update(ctx, submission)
+	return submission, s.submissionRepository.Update(ctx, submission)
 }
 
-func (s *submissionService) Reject(ctx context.Context, id int64) error {
-	submission, err := s.submissionRepository.GetById(ctx, id)
-	if err != nil {
-		return err
-	}
-	if submission.ProductStatus != "pending" {
-		return errors.New("Pengajuan ini sudah diterima atau ditolak oleh admin")
-	}
+func (s *submissionService) Reject(ctx context.Context, submission *entity.Product) (*entity.Product, error) {
 	submission.ProductStatus = "rejected"
-	return s.submissionRepository.Update(ctx, submission)
+	return submission, s.submissionRepository.Update(ctx, submission)
 }
 
 func (s *submissionService) Cancel(ctx context.Context, submission *entity.Product, req dto.GetProductByIDRequest) error {
-	userID := req.UserID
-	if userID == 0 {
-		return errors.New("User ID tidak ditemukan")
-	}
-	submission, err := s.submissionRepository.GetById(ctx, req.ID)
-	if err != nil {
-		return err
-	}
-	if submission.UserID != userID {
-		return errors.New("Anda tidak memiliki hak untuk mengupdate pengajuan ini")
-	}
-	if submission.ProductStatus != "pending" {
-		return errors.New("Pengajuan ini sudah tidak dapat dicancel karena sudah diterima atau ditolak oleh admin")
-	}
 	return s.submissionRepository.Delete(ctx, submission)
 }

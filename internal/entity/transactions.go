@@ -9,6 +9,8 @@ type Transaction struct {
 	UserID              int64     `json:"user_id"`
 	TransactionQuantity int       `json:"transaction_quantity"`
 	TransactionAmount   float64   `json:"transaction_amount"`
+	TransactionType     string    `json:"transaction_type"`
+	OrderID             string    `json:"order_id"`
 	CreatedAt           time.Time `json:"created_at"`
 	UpdatedAt           time.Time `json:"updated_at"`
 }

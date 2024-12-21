@@ -12,6 +12,7 @@ type ProductService interface {
 	GetAll(ctx context.Context, req dto.GetAllProductsRequest) ([]entity.Product, error)
 	GetById(ctx context.Context, id int64) (*entity.Product, error)
 	GetByUserId(ctx context.Context, req dto.GetProductByUserIDRequest) ([]entity.Product, error)
+	Update(ctx context.Context, product *entity.Product) error
 	Delete(ctx context.Context, product *entity.Product) error
 }
 
@@ -37,4 +38,8 @@ func (s *productService) Delete(ctx context.Context, product *entity.Product) er
 
 func (s *productService) GetByUserId(ctx context.Context, req dto.GetProductByUserIDRequest) ([]entity.Product, error) {
 	return s.productRepository.GetByUserId(ctx, req)
+}
+
+func (s *productService) Update(ctx context.Context, product *entity.Product) error {
+	return s.productRepository.Update(ctx, product)
 }

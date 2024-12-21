@@ -64,6 +64,7 @@ func PrivateRoutes(
 	submissionHandler handler.SubmissionHandler,
 	ticketHandler handler.TicketHandler,
 	transactionHandler handler.TransactionHandler,
+	notificationHandler handler.NotificationHandler,
 ) []route.Route {
 	return []route.Route{
 		{
@@ -166,6 +167,36 @@ func PrivateRoutes(
 			Path:    "/transactions/:id",
 			Handler: transactionHandler.GetTransaction,
 			Roles:   adminOnly,
+		},
+		{
+			Method:  http.MethodGet,
+			Path:    "/users",
+			Handler: userHandler.GetUsers,
+			Roles:   adminOnly,
+		},
+		{
+			Method:  http.MethodGet,
+			Path:    "/users/:id",
+			Handler: userHandler.GetUser,
+			Roles:   adminOnly,
+		},
+		{
+			Method:  http.MethodDelete,
+			Path:    "/users/:id",
+			Handler: userHandler.DeleteUser,
+			Roles:   adminOnly,
+		},
+		{
+			Method:  http.MethodGet,
+			Path:    "/users/notifications",
+			Handler: notificationHandler.GetNotificationsByUser,
+			Roles:   userOnly,
+		},
+		{
+			Method:  http.MethodGet,
+			Path:    "/users/:id/notifications/:id",
+			Handler: notificationHandler.GetNotificationsByUserAndID,
+			Roles:   userOnly,
 		},
 	}
 }

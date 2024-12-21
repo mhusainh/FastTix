@@ -17,7 +17,7 @@ func NewTicketHandler(ticketService service.TicketService) TicketHandler {
 	return TicketHandler{ticketService}
 }
 
-func (h TicketHandler) GetTickets(ctx echo.Context) error {
+func (h *TicketHandler) GetTickets(ctx echo.Context) error {
 	var req dto.GetAllProductsRequest
 	
 	err := ctx.Bind(&req)
@@ -33,7 +33,7 @@ func (h TicketHandler) GetTickets(ctx echo.Context) error {
 	return ctx.JSON(http.StatusOK, response.SuccessResponse("Successfully showing all tickets", ticket))
 }
 
-func (h TicketHandler) GetTicket(ctx echo.Context) error {
+func (h *TicketHandler) GetTicket(ctx echo.Context) error {
 	var req dto.GetProductByIDRequest
 
 	if err := ctx.Bind(&req); err != nil {
