@@ -6,6 +6,7 @@ import (
 	"github.com/golang-jwt/jwt/v5"
 	echojwt "github.com/labstack/echo-jwt/v4"
 	"github.com/labstack/echo/v4"
+	"github.com/labstack/echo/v4/middleware"
 	"github.com/mhusainh/FastTix/config"
 	"github.com/mhusainh/FastTix/internal/entity"
 	"github.com/mhusainh/FastTix/pkg/response"
@@ -18,6 +19,13 @@ type Server struct {
 
 func NewServer(cfg *config.Config, publicRoutes, privateRoutes []route.Route) *Server {
 	e := echo.New()
+
+	e.Use(middleware.CORSWithConfig(middleware.CORSConfig{
+		AllowOrigins: []string{"http://localhost:3000"}, // Ganti dengan origin frontend Anda
+		AllowMethods: []string{http.MethodGet, http.MethodPost, http.MethodPut, http.MethodDelete, http.MethodOptions},
+		AllowHeaders: []string{echo.HeaderOrigin, echo.HeaderContentType, echo.HeaderAccept, echo.HeaderAuthorization},
+	}))
+
 	v1 := e.Group("/api/v1")
 	if len(publicRoutes) > 0 {
 		for _, route := range publicRoutes {

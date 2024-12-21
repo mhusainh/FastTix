@@ -1,6 +1,7 @@
 package handler
 
 import (
+	"fmt"
 	"net/http"
 
 	"github.com/labstack/echo/v4"
@@ -11,13 +12,13 @@ import (
 )
 
 type SubmissionHandler struct {
-	submissionService  service.SubmissionService
-	tokenService       service.TokenService
-	productService     service.ProductService
-	transactionService service.TransactionService
-	userService        service.UserService
+	submissionService   service.SubmissionService
+	tokenService        service.TokenService
+	productService      service.ProductService
+	transactionService  service.TransactionService
+	userService         service.UserService
 	notificationService service.NotificationService
-	paymentService     service.PaymentService
+	paymentService      service.PaymentService
 }
 
 func NewSubmissionHandler(
@@ -28,7 +29,7 @@ func NewSubmissionHandler(
 	userService service.UserService,
 	notificationService service.NotificationService,
 	paymentService service.PaymentService,
-	) SubmissionHandler {
+) SubmissionHandler {
 	return SubmissionHandler{submissionService, tokenService, productService, transactionService, userService, notificationService, paymentService}
 }
 
@@ -68,9 +69,10 @@ func (h *SubmissionHandler) CreateSubmission(ctx echo.Context) error {
 	var n dto.CreateNotificationRequest
 
 	if err := ctx.Bind(&req); err != nil {
+		fmt.Println("Kontol", err.Error())
 		return ctx.JSON(http.StatusBadRequest, response.ErrorResponse(http.StatusBadRequest, err.Error()))
 	}
-
+	fmt.Println(req.ProductName)
 	userID, err := h.tokenService.GetUserIDFromToken(ctx)
 	if err != nil {
 		return ctx.JSON(http.StatusUnauthorized, response.ErrorResponse(http.StatusUnauthorized, err.Error()))
@@ -82,12 +84,12 @@ func (h *SubmissionHandler) CreateSubmission(ctx echo.Context) error {
 	}
 
 	t.VerificationToken = utils.RandomString(6)
-	
+
 	submission, err := h.submissionService.Create(ctx.Request().Context(), req, t, user)
 	if err != nil {
 		return ctx.JSON(http.StatusInternalServerError, response.ErrorResponse(http.StatusInternalServerError, err.Error()))
 	}
-
+	fmt.Println(submission.OrderID)
 	if submission.ProductPrice != 0 {
 		transaction, err := h.transactionService.GetByOrderID(ctx.Request().Context(), submission.OrderID)
 		if err != nil {
@@ -111,7 +113,10 @@ func (h *SubmissionHandler) CreateSubmission(ctx echo.Context) error {
 }
 
 func (h *SubmissionHandler) CheckoutSubmission(ctx echo.Context) error {
+
+	verificationToken := ctx.Param("tokenid")
 	var t dto.GetTransactionByVerificationTokenRequest
+	t.VerificationToken = verificationToken
 
 	if err := ctx.Bind(&t); err != nil {
 		return ctx.JSON(http.StatusBadRequest, response.ErrorResponse(http.StatusBadRequest, err.Error()))
@@ -136,7 +141,7 @@ func (h *SubmissionHandler) CheckoutSubmission(ctx echo.Context) error {
 	if err != nil {
 		return ctx.JSON(http.StatusInternalServerError, response.ErrorResponse(http.StatusInternalServerError, err.Error()))
 	}
-	
+
 	if transaction.UserID != user.ID {
 		return ctx.JSON(http.StatusUnauthorized, response.ErrorResponse(http.StatusUnauthorized, "Anda tidak memiliki hak untuk melihat transaksi ini"))
 	}

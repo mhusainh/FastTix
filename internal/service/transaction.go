@@ -109,12 +109,13 @@ func (s *transactionService) Create(ctx context.Context, req dto.CreateTransacti
 		req.TransactionStatus = "pending"
 	}
 	req.TransactionAmount = product.ProductPrice * float64(req.TransactionQuantity)
-	req.OrderID = fmt.Sprintf("CT%s", utils.RandomString(10))
+	req.OrderID = fmt.Sprintf("order_id-%s", utils.RandomString(10))
 	transaction := &entity.Transaction{
 		TransactionAmount:   req.TransactionAmount,
 		TransactionQuantity: req.TransactionQuantity,
 		TransactionStatus:   req.TransactionStatus,
 		TransactionType:     "ticket",
+		VerificationToken:   req.VerificationToken,
 		OrderID:             req.OrderID,
 		UserID:              user.ID,
 		ProductID:           product.ID,
