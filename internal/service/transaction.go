@@ -3,12 +3,14 @@ package service
 import (
 	"bytes"
 	"context"
+	"fmt"
 	"text/template"
 
 	"github.com/mhusainh/FastTix/config"
 	"github.com/mhusainh/FastTix/internal/entity"
 	"github.com/mhusainh/FastTix/internal/http/dto"
 	"github.com/mhusainh/FastTix/internal/repository"
+	"github.com/mhusainh/FastTix/utils"
 	"gopkg.in/gomail.v2"
 )
 
@@ -16,6 +18,8 @@ type TransactionService interface {
 	GetAll(ctx context.Context) ([]entity.Transaction, error)
 	GetById(ctx context.Context, id int64) (*entity.Transaction, error)
 	GetByUserId(ctx context.Context, req dto.GetTransactionByUserIDRequest) ([]entity.Transaction, error)
+	GetTransactionByToken(ctx context.Context, token string) (*entity.Transaction, error)
+	GetByOrderID(ctx context.Context, orderID string) (*entity.Transaction, error)
 	Create(ctx context.Context, req dto.CreateTransactionRequest, user *entity.User, product *entity.Product) (*entity.Transaction, error)
 	PaymentTicket(ctx context.Context, req dto.UpdateTransactionRequest, user *entity.User, product *entity.Product, transaction *entity.Transaction) (*entity.Transaction, error)
 	PaymentSubmission(ctx context.Context, req dto.UpdateTransactionRequest, user *entity.User, product *entity.Product, transaction *entity.Transaction) (*entity.Transaction, error)
@@ -45,6 +49,10 @@ func (s *transactionService) GetById(ctx context.Context, id int64) (*entity.Tra
 
 func (s *transactionService) GetByUserId(ctx context.Context, req dto.GetTransactionByUserIDRequest) ([]entity.Transaction, error) {
 	return s.transactionRepository.GetByUserId(ctx, req)
+}
+
+func (s *transactionService) GetByOrderID(ctx context.Context, orderID string) (*entity.Transaction, error) {
+	return s.transactionRepository.GetByOrderID(ctx, orderID)
 }
 
 func (s *transactionService) Create(ctx context.Context, req dto.CreateTransactionRequest, user *entity.User, product *entity.Product) (*entity.Transaction, error) {
@@ -101,11 +109,13 @@ func (s *transactionService) Create(ctx context.Context, req dto.CreateTransacti
 		req.TransactionStatus = "pending"
 	}
 	req.TransactionAmount = product.ProductPrice * float64(req.TransactionQuantity)
+	req.OrderID = fmt.Sprintf("CT%s", utils.RandomString(10))
 	transaction := &entity.Transaction{
 		TransactionAmount:   req.TransactionAmount,
 		TransactionQuantity: req.TransactionQuantity,
 		TransactionStatus:   req.TransactionStatus,
 		TransactionType:     "ticket",
+		OrderID:             req.OrderID,
 		UserID:              user.ID,
 		ProductID:           product.ID,
 	}
@@ -191,4 +201,8 @@ func (s *transactionService) PaymentSubmission(ctx context.Context, req dto.Upda
 	}
 	transaction.TransactionStatus = "success"
 	return transaction, s.transactionRepository.Update(ctx, transaction)
+}
+
+func (s *transactionService) GetTransactionByToken(ctx context.Context, token string) (*entity.Transaction, error) {
+	return s.transactionRepository.GetTransactionByToken(ctx, token)
 }

@@ -15,6 +15,7 @@ type Product struct {
 	ProductType           string    `json:"product_type"`
 	ProductStatus         string    `json:"product_status"`
 	UserID                int64     `json:"user_id"`
+	OrderID               string    `json:"order_id"`
 	CreatedAt             time.Time `json:"created_at"`
 	UpdatedAt             time.Time `json:"updated_at"`
 }

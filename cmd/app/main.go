@@ -20,6 +20,8 @@ func main() {
 	checkError(err)
 	//init & start database
 	db, err := database.InitDatabase(cfg.MySQLConfig)
+
+	// midtransClient := InitMidtransClient(cfg.MidtransConfig)
 	//RBAC
 	publicRoutes := builder.BuilderPublicRoutes(cfg, db)
 	privateRoutes := builder.BuilderPrivateRoutes(cfg, db)

@@ -4,12 +4,14 @@ import (
 	"bytes"
 	"context"
 	"errors"
+	"fmt"
 	"text/template"
 
 	"github.com/mhusainh/FastTix/config"
 	"github.com/mhusainh/FastTix/internal/entity"
 	"github.com/mhusainh/FastTix/internal/http/dto"
 	"github.com/mhusainh/FastTix/internal/repository"
+	"github.com/mhusainh/FastTix/utils"
 	"gopkg.in/gomail.v2"
 )
 
@@ -21,6 +23,7 @@ type SubmissionService interface {
 	Approve(ctx context.Context, submission *entity.Product) (*entity.Product, error)
 	Reject(ctx context.Context, submission *entity.Product) (*entity.Product, error)
 	Cancel(ctx context.Context, submission *entity.Product, req dto.GetProductByIDRequest) error
+	HandleMidtransNotification(ctx context.Context, notif map[string]interface{}) error
 }
 
 type submissionService struct {
@@ -28,6 +31,7 @@ type submissionService struct {
 	submissionRepository  repository.SubmissionRepository
 	transactionRepository repository.TransactionRepository
 	productRepository     repository.ProductRepository
+	userRepository        repository.UserRepository
 }
 
 func NewSubmissionService(
@@ -35,8 +39,9 @@ func NewSubmissionService(
 	submissionRepository repository.SubmissionRepository,
 	transactionRepository repository.TransactionRepository,
 	productRepository repository.ProductRepository,
+	userRepository repository.UserRepository,
 ) SubmissionService {
-	return &submissionService{cfg, submissionRepository, transactionRepository, productRepository}
+	return &submissionService{cfg, submissionRepository, transactionRepository, productRepository, userRepository}
 }
 
 func (s *submissionService) GetAll(ctx context.Context, req dto.GetAllProductsRequest) ([]entity.Product, error) {
@@ -86,6 +91,8 @@ func (s *submissionService) Create(ctx context.Context, req dto.CreateProductReq
 		req.ProductStatus = "unpaid"
 	}
 
+	req.OrderID = fmt.Sprintf("daftar_id-%s", utils.RandomString(10))
+
 	submission := &entity.Product{
 		ProductName:        req.ProductName,
 		ProductAddress:     req.ProductAddress,
@@ -98,6 +105,7 @@ func (s *submissionService) Create(ctx context.Context, req dto.CreateProductReq
 		ProductType:        "available",
 		ProductStatus:      req.ProductStatus,
 		UserID:             user.ID,
+		OrderID:            req.OrderID,
 	}
 
 	if err := s.submissionRepository.Create(ctx, submission); err != nil {
@@ -115,9 +123,12 @@ func (s *submissionService) Create(ctx context.Context, req dto.CreateProductReq
 			TransactionAmount:   TransactionAmount,
 			TransactionStatus:   "pending",
 			TransactionType:     "submission",
+			VerificationToken:   t.VerificationToken,
+			OrderID:             req.OrderID,
+			CheckIn:             1,
 		}
 		if err := s.transactionRepository.Create(ctx, transaction); err != nil {
-			return nil,err
+			return nil, err
 		}
 	}
 
@@ -165,4 +176,78 @@ func (s *submissionService) Reject(ctx context.Context, submission *entity.Produ
 
 func (s *submissionService) Cancel(ctx context.Context, submission *entity.Product, req dto.GetProductByIDRequest) error {
 	return s.submissionRepository.Delete(ctx, submission)
+}
+
+func (s *submissionService) HandleMidtransNotification(ctx context.Context, notif map[string]interface{}) error {
+	orderID, ok := notif["order_id"].(string)
+	if !ok {
+		return errors.New("no order_id in notification")
+	}
+	transactionStatus, ok := notif["transaction_status"].(string)
+	if !ok {
+		return errors.New("no transaction_status in notification")
+	}
+
+	trans, err := s.transactionRepository.GetByOrderID(ctx, orderID)
+	if err != nil {
+		return err
+	}
+	product, err := s.productRepository.GetById(ctx, trans.ProductID)
+	if err != nil {
+		return err
+	}
+	user, err := s.userRepository.GetById(ctx, trans.UserID)
+	if err != nil {
+		return err
+	}
+
+	if transactionStatus == "capture" || transactionStatus == "settlement" || transactionStatus == "success" {
+		// Payment successful
+		product.ProductStatus = "pending"
+		templatePath := "./templates/email/notif-submission.html"
+		tmpl, err := template.ParseFiles(templatePath)
+		if err != nil {
+			return err
+		}
+
+		var body bytes.Buffer
+		if err := tmpl.Execute(&body, nil); err != nil {
+			return err
+		}
+
+		m := gomail.NewMessage()
+		m.SetHeader("From", s.cfg.SMTPConfig.Username)
+		m.SetHeader("To", user.Email)
+		m.SetHeader("Subject", "Fast Tix : Submission Event!")
+		m.SetBody("text/html", body.String())
+
+		d := gomail.NewDialer(
+			s.cfg.SMTPConfig.Host,
+			s.cfg.SMTPConfig.Port,
+			s.cfg.SMTPConfig.Username,
+			s.cfg.SMTPConfig.Password,
+		)
+
+		// Send the email to Bob, Cora and Dan.
+		if err := d.DialAndSend(m); err != nil {
+			panic(err)
+		}
+		if err := s.productRepository.Update(ctx, product); err != nil {
+			return err
+		}
+		trans.TransactionStatus = "success"
+
+		if err := s.transactionRepository.Update(ctx, trans); err != nil {
+			return err
+		}
+	} else if transactionStatus == "deny" || transactionStatus == "cancel" || transactionStatus == "expire" {
+		// Payment failed
+		trans.TransactionStatus = "failed"
+		if err := s.transactionRepository.Update(ctx, trans); err != nil {
+			return err
+		}
+		// Optionally, send a failure notification email
+	}
+
+	return nil
 }

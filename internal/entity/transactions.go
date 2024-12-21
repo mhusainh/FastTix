@@ -11,6 +11,8 @@ type Transaction struct {
 	TransactionAmount   float64   `json:"transaction_amount"`
 	TransactionType     string    `json:"transaction_type"`
 	OrderID             string    `json:"order_id"`
+	VerificationToken   string    `json:"verification_token"`
+	CheckIn             int       `json:"checkin"`
 	CreatedAt           time.Time `json:"created_at"`
 	UpdatedAt           time.Time `json:"updated_at"`
 }

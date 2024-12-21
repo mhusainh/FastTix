@@ -7,6 +7,7 @@ import (
 	"github.com/mhusainh/FastTix/internal/http/dto"
 	"github.com/mhusainh/FastTix/internal/service"
 	"github.com/mhusainh/FastTix/pkg/response"
+	"github.com/mhusainh/FastTix/utils"
 )
 
 type SubmissionHandler struct {
@@ -16,6 +17,7 @@ type SubmissionHandler struct {
 	transactionService service.TransactionService
 	userService        service.UserService
 	notificationService service.NotificationService
+	paymentService     service.PaymentService
 }
 
 func NewSubmissionHandler(
@@ -25,11 +27,12 @@ func NewSubmissionHandler(
 	transactionService service.TransactionService,
 	userService service.UserService,
 	notificationService service.NotificationService,
+	paymentService service.PaymentService,
 	) SubmissionHandler {
-	return SubmissionHandler{submissionService, tokenService, productService, transactionService, userService, notificationService}
+	return SubmissionHandler{submissionService, tokenService, productService, transactionService, userService, notificationService, paymentService}
 }
 
-func (h SubmissionHandler) GetSubmissions(ctx echo.Context) error {
+func (h *SubmissionHandler) GetSubmissions(ctx echo.Context) error {
 	var req dto.GetAllProductsRequest
 
 	if err := ctx.Bind(&req); err != nil {
@@ -44,7 +47,7 @@ func (h SubmissionHandler) GetSubmissions(ctx echo.Context) error {
 	return ctx.JSON(http.StatusOK, response.SuccessResponse("Successfully showing all submission", submission))
 }
 
-func (h SubmissionHandler) GetSubmission(ctx echo.Context) error {
+func (h *SubmissionHandler) GetSubmission(ctx echo.Context) error {
 	var req dto.GetProductByIDRequest
 
 	if err := ctx.Bind(&req); err != nil {
@@ -78,9 +81,23 @@ func (h *SubmissionHandler) CreateSubmission(ctx echo.Context) error {
 		return ctx.JSON(http.StatusInternalServerError, response.ErrorResponse(http.StatusInternalServerError, err.Error()))
 	}
 
+	t.VerificationToken = utils.RandomString(6)
+	
 	submission, err := h.submissionService.Create(ctx.Request().Context(), req, t, user)
 	if err != nil {
 		return ctx.JSON(http.StatusInternalServerError, response.ErrorResponse(http.StatusInternalServerError, err.Error()))
+	}
+
+	if submission.ProductPrice != 0 {
+		transaction, err := h.transactionService.GetByOrderID(ctx.Request().Context(), submission.OrderID)
+		if err != nil {
+			return ctx.JSON(http.StatusInternalServerError, response.ErrorResponse(http.StatusInternalServerError, err.Error()))
+		}
+
+		err = h.paymentService.CreateTokenPayment(ctx.Request().Context(), user, submission, transaction)
+		if err != nil {
+			return ctx.JSON(http.StatusInternalServerError, response.ErrorResponse(http.StatusInternalServerError, err.Error()))
+		}
 	}
 
 	n.Message = "create"
@@ -90,10 +107,49 @@ func (h *SubmissionHandler) CreateSubmission(ctx echo.Context) error {
 		return ctx.JSON(http.StatusInternalServerError, response.ErrorResponse(http.StatusInternalServerError, err.Error()))
 	}
 
-	return ctx.JSON(http.StatusOK, response.SuccessResponse("Successfully create a product", submission))
+	return ctx.JSON(http.StatusOK, response.SuccessResponse("Successfully create a product", nil))
 }
 
-func (h SubmissionHandler) UpdateSubmissionByUser(ctx echo.Context) error {
+func (h *SubmissionHandler) CheckoutSubmission(ctx echo.Context) error {
+	var t dto.GetTransactionByVerificationTokenRequest
+
+	if err := ctx.Bind(&t); err != nil {
+		return ctx.JSON(http.StatusBadRequest, response.ErrorResponse(http.StatusBadRequest, err.Error()))
+	}
+
+	userID, err := h.tokenService.GetUserIDFromToken(ctx)
+	if err != nil {
+		return ctx.JSON(http.StatusUnauthorized, response.ErrorResponse(http.StatusUnauthorized, err.Error()))
+	}
+
+	user, err := h.userService.GetById(ctx.Request().Context(), userID)
+	if err != nil {
+		return ctx.JSON(http.StatusInternalServerError, response.ErrorResponse(http.StatusInternalServerError, err.Error()))
+	}
+
+	transaction, err := h.transactionService.GetTransactionByToken(ctx.Request().Context(), t.VerificationToken)
+	if err != nil {
+		return ctx.JSON(http.StatusInternalServerError, response.ErrorResponse(http.StatusInternalServerError, err.Error()))
+	}
+
+	product, err := h.productService.GetById(ctx.Request().Context(), transaction.ProductID)
+	if err != nil {
+		return ctx.JSON(http.StatusInternalServerError, response.ErrorResponse(http.StatusInternalServerError, err.Error()))
+	}
+	
+	if transaction.UserID != user.ID {
+		return ctx.JSON(http.StatusUnauthorized, response.ErrorResponse(http.StatusUnauthorized, "Anda tidak memiliki hak untuk melihat transaksi ini"))
+	}
+
+	purchase, err := h.paymentService.CreatePayment(ctx.Request().Context(), product, user, transaction)
+	if err != nil {
+		return ctx.JSON(http.StatusInternalServerError, response.ErrorResponse(http.StatusInternalServerError, err.Error()))
+	}
+
+	return ctx.JSON(http.StatusOK, response.SuccessResponse("Successfully generate payment url", purchase))
+}
+
+func (h *SubmissionHandler) UpdateSubmissionByUser(ctx echo.Context) error {
 	var req dto.UpdateProductRequest
 	var n dto.CreateNotificationRequest
 
@@ -139,7 +195,7 @@ func (h SubmissionHandler) UpdateSubmissionByUser(ctx echo.Context) error {
 	return ctx.JSON(http.StatusOK, response.SuccessResponse("Successfully update a submission", submission))
 }
 
-func (h SubmissionHandler) ApproveSubmission(ctx echo.Context) error {
+func (h *SubmissionHandler) ApproveSubmission(ctx echo.Context) error {
 	var req dto.GetProductByIDRequest
 	var n dto.CreateNotificationRequest
 
@@ -171,7 +227,7 @@ func (h SubmissionHandler) ApproveSubmission(ctx echo.Context) error {
 	return ctx.JSON(http.StatusOK, response.SuccessResponse("Successfully approve a submission", submission))
 }
 
-func (h SubmissionHandler) RejectSubmission(ctx echo.Context) error {
+func (h *SubmissionHandler) RejectSubmission(ctx echo.Context) error {
 	var req dto.GetProductByIDRequest
 	var n dto.CreateNotificationRequest
 
