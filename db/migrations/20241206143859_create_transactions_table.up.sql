@@ -10,7 +10,7 @@ CREATE TABLE IF NOT EXISTS transactions (
     user_id INT NOT NULL,
     product_id INT NOT NULL,
     verification_token VARCHAR(255) NOT NULL,
-    chekc_in INT NOT NULL DEFAULT 0,
+    check_in INT NOT NULL DEFAULT 0,
     CONSTRAINT fk_user_transactions FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE ON UPDATE CASCADE,
     CONSTRAINT fk_product_transactions FOREIGN KEY (product_id) REFERENCES products(id) ON DELETE CASCADE ON UPDATE CASCADE,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,

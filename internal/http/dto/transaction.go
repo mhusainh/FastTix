@@ -21,7 +21,7 @@ type CreateTransactionRequest struct {
 	TransactionStatus   string  `json:"transaction_status" validate:"required"`
 	VerificationToken   string  `json:"verification_token"`
 	OrderID             string  `json:"order_id" validate:"required"`
-	CheckIn             int     `json:"checkin"`
+	CheckIn             int     `json:"check_in"`
 }
 
 type UpdateTransactionRequest struct {
