@@ -83,7 +83,7 @@ func (r *productRepository) Create(ctx context.Context, product *entity.Product)
 }
 
 func (r *productRepository) Update(ctx context.Context, product *entity.Product) error {
-	return r.db.WithContext(ctx).Updates(&product).Error
+	return r.db.WithContext(ctx).Save(&product).Error
 }
 
 func (r *productRepository) Delete(ctx context.Context, product *entity.Product) error {

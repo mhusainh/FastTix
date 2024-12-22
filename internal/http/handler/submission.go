@@ -352,7 +352,7 @@ func (h *SubmissionHandler) UploadPicture(ctx echo.Context) error {
 	}
 
 	// Define the file path to save the uploaded image.
-	pathImage := "path/to/your/project-profile/images" + file.Filename
+	pathImage := "images/" + file.Filename
 
 	// Save the uploaded file to the specified path.
 	if err := saveUploadedFile(file, pathImage); err != nil {

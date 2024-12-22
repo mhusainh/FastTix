@@ -21,11 +21,10 @@ func NewServer(cfg *config.Config, publicRoutes, privateRoutes []route.Route) *S
 	e := echo.New()
 
 	e.Use(middleware.CORSWithConfig(middleware.CORSConfig{
-		AllowOrigins: []string{"http://localhost:3000"}, // Ganti dengan origin frontend Anda
+		AllowOrigins: []string{"http://localhost:3000"},
 		AllowMethods: []string{http.MethodGet, http.MethodPost, http.MethodPut, http.MethodDelete, http.MethodOptions},
 		AllowHeaders: []string{echo.HeaderOrigin, echo.HeaderContentType, echo.HeaderAccept, echo.HeaderAuthorization},
 	}))
-
 	v1 := e.Group("/api/v1")
 	if len(publicRoutes) > 0 {
 		for _, route := range publicRoutes {

@@ -58,7 +58,7 @@ func (h *TransactionHandler) GetTransaction(ctx echo.Context) error {
 func (h *TransactionHandler) GetTransactionByUserId(ctx echo.Context) error {
 	var req dto.GetTransactionByUserIDRequest
 
-	if err := ctx.Bind(&req);err != nil {
+	if err := ctx.Bind(&req); err != nil {
 		return ctx.JSON(http.StatusBadRequest, response.ErrorResponse(http.StatusBadRequest, err.Error()))
 	}
 

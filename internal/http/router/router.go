@@ -3,6 +3,7 @@ package router
 import (
 	"net/http"
 
+	"github.com/labstack/echo/v4"
 	"github.com/mhusainh/FastTix/internal/http/handler"
 	"github.com/mhusainh/FastTix/pkg/route"
 )
@@ -21,6 +22,16 @@ func PublicRoutes(
 	webhookHandler handler.WebhookHandler,
 ) []route.Route {
 	return []route.Route{
+		{
+			Method: http.MethodGet,
+			Path:   "/image/*",
+			Handler: func(c echo.Context) error {
+				filePath := c.Param("*")
+				staticDir := "images/"
+				fullPath := staticDir + filePath
+				return c.File(fullPath)
+			},
+		},
 		{
 			Method:  http.MethodPost,
 			Path:    "/webhook/midtrans",

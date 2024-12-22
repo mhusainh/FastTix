@@ -78,7 +78,6 @@ func (r *submissionRepository) GetAll(ctx context.Context, req dto.GetAllProduct
 	return result, nil
 }
 
-
 func (r *submissionRepository) GetById(ctx context.Context, id int64) (*entity.Product, error) {
 	result := new(entity.Product)
 	if err := r.db.WithContext(ctx).Where("id = ? AND product_status = ?", id, "pending").First(&result).Error; err != nil {
