@@ -28,9 +28,7 @@ func NewSubmissionRepository(db *gorm.DB) SubmissionRepository {
 
 func (r *submissionRepository) GetAll(ctx context.Context, req dto.GetAllProductsRequest) ([]entity.Product, error) {
 	result := make([]entity.Product, 0)
-	allowedStatus := []string{"pending", "unpaid"} // Hanya "pending" dan "unpaid"
-
-	query := r.db.WithContext(ctx).Where("product_status IN ?", allowedStatus) // Tetap berlaku untuk semua kondisi
+	query := r.db.WithContext(ctx).Where("product_status I= ?", "pending") // Tetap berlaku untuk semua kondisi
 
 	if req.Search != "" {
 		search := strings.ToLower(req.Search)
@@ -61,8 +59,7 @@ func (r *submissionRepository) GetAll(ctx context.Context, req dto.GetAllProduct
 
 func (r *submissionRepository) GetById(ctx context.Context, id int64) (*entity.Product, error) {
 	result := new(entity.Product)
-	allowedStatus := []string{"pending", "unpaid"}
-	if err := r.db.WithContext(ctx).Where("id = ? AND product_status IN ?", id, allowedStatus).First(&result).Error; err != nil {
+	if err := r.db.WithContext(ctx).Where("id = ? AND product_status = ?", id, "pending").First(&result).Error; err != nil {
 		return nil, err
 	}
 	return result, nil

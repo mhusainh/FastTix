@@ -94,7 +94,6 @@ func (h *SubmissionHandler) CreateSubmission(ctx echo.Context) error {
 	var n dto.CreateNotificationRequest
 
 	if err := ctx.Bind(&req); err != nil {
-		fmt.Println("Kontol", err.Error())
 		return ctx.JSON(http.StatusBadRequest, response.ErrorResponse(http.StatusBadRequest, err.Error()))
 	}
 	fmt.Println(req.ProductName)
