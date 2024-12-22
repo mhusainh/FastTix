@@ -63,6 +63,31 @@ func (h *SubmissionHandler) GetSubmission(ctx echo.Context) error {
 	return ctx.JSON(http.StatusOK, response.SuccessResponse("Successfully showing a submission", submission))
 }
 
+func (h *SubmissionHandler) GetSubmissionByUser(ctx echo.Context) error {
+	var req dto.GetProductByUserIDRequest
+
+	if err := ctx.Bind(&req); err != nil {
+		return ctx.JSON(http.StatusBadRequest, response.ErrorResponse(http.StatusBadRequest, err.Error()))
+	}
+
+	userID, err := h.tokenService.GetUserIDFromToken(ctx)
+	if err != nil {
+		return ctx.JSON(http.StatusUnauthorized, response.ErrorResponse(http.StatusUnauthorized, err.Error()))
+	}
+
+	user, err := h.userService.GetById(ctx.Request().Context(), userID)
+	if err != nil {
+		return ctx.JSON(http.StatusInternalServerError, response.ErrorResponse(http.StatusInternalServerError, err.Error()))
+	}
+
+	submission, err := h.submissionService.GetByUserId(ctx.Request().Context(), req, user)
+	if err != nil {
+		return ctx.JSON(http.StatusInternalServerError, response.ErrorResponse(http.StatusInternalServerError, err.Error()))
+	}
+
+	return ctx.JSON(http.StatusOK, response.SuccessResponse("Successfully showing all user's submission", submission))
+}
+
 func (h *SubmissionHandler) CreateSubmission(ctx echo.Context) error {
 	var req dto.CreateProductRequest
 	var t dto.CreateTransactionRequest

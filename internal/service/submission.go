@@ -18,6 +18,7 @@ import (
 type SubmissionService interface {
 	GetAll(ctx context.Context, req dto.GetAllProductsRequest) ([]entity.Product, error)
 	GetById(ctx context.Context, id int64) (*entity.Product, error)
+	GetByUserId(ctx context.Context, req dto.GetProductByUserIDRequest, user *entity.User								) ([]entity.Product, error)
 	Create(ctx context.Context, req dto.CreateProductRequest, t dto.CreateTransactionRequest, user *entity.User) (*entity.Product, error)
 	UpdateByUser(ctx context.Context, req dto.UpdateProductRequest, user *entity.User, submission *entity.Product) (*entity.Product, error)
 	Approve(ctx context.Context, submission *entity.Product) (*entity.Product, error)
@@ -50,6 +51,11 @@ func (s *submissionService) GetAll(ctx context.Context, req dto.GetAllProductsRe
 
 func (s *submissionService) GetById(ctx context.Context, id int64) (*entity.Product, error) {
 	return s.submissionRepository.GetById(ctx, id)
+}
+
+func (s *submissionService) GetByUserId(ctx context.Context, req dto.GetProductByUserIDRequest, user *entity.User) ([]entity.Product, error) {
+	req.UserID = user.ID
+	return s.submissionRepository.GetByUserId(ctx, req)
 }
 
 func (s *submissionService) Create(ctx context.Context, req dto.CreateProductRequest, t dto.CreateTransactionRequest, user *entity.User) (*entity.Product, error) {

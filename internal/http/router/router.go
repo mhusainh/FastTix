@@ -85,6 +85,12 @@ func PrivateRoutes(
 			Roles:   allRoles,
 		},
 		{
+			Method:  http.MethodGet,
+			Path:    "/submissions/user",
+			Handler: submissionHandler.GetSubmissionByUser,
+			Roles:   userOnly,
+		},
+		{
 			Method:  http.MethodPost,
 			Path:    "/submissions",
 			Handler: submissionHandler.CreateSubmission, // buat submission baru

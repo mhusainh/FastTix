@@ -12,6 +12,7 @@ import (
 type SubmissionRepository interface {
 	GetAll(ctx context.Context, req dto.GetAllProductsRequest) ([]entity.Product, error)
 	GetById(ctx context.Context, id int64) (*entity.Product, error)
+	GetByUserId(ctx context.Context, req dto.GetProductByUserIDRequest) ([]entity.Product, error)
 	Create(ctx context.Context, product *entity.Product) error
 	Update(ctx context.Context, product *entity.Product) error
 	Delete(ctx context.Context, product *entity.Product) error
@@ -65,6 +66,18 @@ func (r *submissionRepository) GetById(ctx context.Context, id int64) (*entity.P
 		return nil, err
 	}
 	return result, nil
+}
+
+func (r *submissionRepository) GetByUserId(ctx context.Context, req dto.GetProductByUserIDRequest) ([]entity.Product, error) {
+	submissions := make([]entity.Product, 0)
+	query := r.db.WithContext(ctx).Where("user_id = ?", req.UserID)
+	if req.Order != "" {
+		query = query.Order("created_at " + req.Order)
+	}
+	if err := query.Find(&submissions).Error; err != nil {
+		return nil, err
+	}
+	return submissions, nil
 }
 
 func (r *submissionRepository) Create(ctx context.Context, product *entity.Product) error {
