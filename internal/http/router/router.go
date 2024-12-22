@@ -108,11 +108,16 @@ func PrivateRoutes(
 			Handler: transactionHandler.CheckoutTicket, // beli tiket
 			Roles:   userOnly,
 		},
-
 		{
 			Method:  http.MethodPut,
 			Path:    "/submissions/:id",
 			Handler: submissionHandler.UpdateSubmissionByUser,
+			Roles:   userOnly,
+		},
+		{
+			Method:  http.MethodPut,
+			Path:    "/submissions/:id/image",
+			Handler: submissionHandler.UploadPicture,
 			Roles:   userOnly,
 		},
 		{
