@@ -41,14 +41,24 @@ func (r *ticketRepository) GetAll(ctx context.Context, req dto.GetAllProductsReq
 		)
 	}
 
+	if req.MinPrice > 0 && req.MaxPrice > 0 {
+		query = query.Where("product_price BETWEEN ? AND ?", req.MinPrice, req.MaxPrice)
+	}
+	// Additional filtering by date range
+	if req.StartDate != "" && req.EndDate != "" {
+		query = query.Where("product_date BETWEEN ? AND ?", req.StartDate, req.EndDate)
+	}
+	// Sorting
 	if req.Sort != "" && req.Order != "" {
 		query = query.Order(req.Sort + " " + req.Order)
 	}
 
+	// Pagination
 	if req.Page != 0 && req.Limit != 0 {
 		query = query.Offset((req.Page - 1) * req.Limit).Limit(req.Limit)
 	}
 
+	// Execute the query
 	if err := query.Find(&result).Error; err != nil {
 		return nil, err
 	}

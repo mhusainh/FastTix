@@ -28,7 +28,7 @@ func NewSubmissionRepository(db *gorm.DB) SubmissionRepository {
 
 func (r *submissionRepository) GetAll(ctx context.Context, req dto.GetAllProductsRequest) ([]entity.Product, error) {
 	result := make([]entity.Product, 0)
-	query := r.db.WithContext(ctx).Where("product_status I= ?", "pending") // Tetap berlaku untuk semua kondisi
+	query := r.db.WithContext(ctx).Where("product_status = ?", "pending") // Applies to all queries
 
 	if req.Search != "" {
 		search := strings.ToLower(req.Search)
@@ -42,20 +42,42 @@ func (r *submissionRepository) GetAll(ctx context.Context, req dto.GetAllProduct
 		)
 	}
 
+	// Additional filtering by price range
+	if req.MinPrice > 0 && req.MaxPrice > 0 {
+		query = query.Where("product_price BETWEEN ? AND ?", req.MinPrice, req.MaxPrice)
+	}
+
+	if req.MinPrice > 0 {
+		query = query.Where("product_price >= ?", req.MinPrice)
+	}
+
+	if req.MaxPrice > 0 {
+		query = query.Where("product_price <= ?", req.MinPrice)
+	}
+
+	// Additional filtering by date range
+	if req.StartDate != "" && req.EndDate != "" {
+		query = query.Where("product_date BETWEEN ? AND ?", req.StartDate, req.EndDate)
+	}
+
+	// Sorting
 	if req.Sort != "" && req.Order != "" {
 		query = query.Order(req.Sort + " " + req.Order)
 	}
 
+	// Pagination
 	if req.Page != 0 && req.Limit != 0 {
 		query = query.Offset((req.Page - 1) * req.Limit).Limit(req.Limit)
 	}
 
+	// Execute the query
 	if err := query.Find(&result).Error; err != nil {
 		return nil, err
 	}
 
 	return result, nil
 }
+
 
 func (r *submissionRepository) GetById(ctx context.Context, id int64) (*entity.Product, error) {
 	result := new(entity.Product)
