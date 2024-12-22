@@ -163,7 +163,8 @@ func (s *paymentService) HandleMidtransNotification(ctx context.Context, notif m
 		if err := s.transactionRepository.Update(ctx, trans); err != nil {
 			return err
 		}
-		product.ProductQuantity = product.ProductQuantity - trans.TransactionQuantity
+		product.ProductQuantity -= trans.TransactionQuantity
+		product.ProductSold += trans.TransactionQuantity
 		if err := s.productRepository.Update(ctx, product); err != nil {
 			return err
 		}

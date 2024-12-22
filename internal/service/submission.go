@@ -105,6 +105,7 @@ func (s *submissionService) Create(ctx context.Context, req dto.CreateProductReq
 		ProductTime:        req.ProductTime,
 		ProductDate:        req.ProductDate,
 		ProductPrice:       req.ProductPrice,
+		ProductSold:        0,
 		ProductDescription: req.ProductDescription,
 		ProductCategory:    req.ProductCategory,
 		ProductQuantity:    req.ProductQuantity,

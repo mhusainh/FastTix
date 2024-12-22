@@ -35,6 +35,7 @@ func (r *ticketRepository) GetAll(ctx context.Context, req dto.GetAllProductsReq
 			).Or("LOWER(product_category) LIKE ?", "%"+search+"%").
 				Or("LOWER(product_address) LIKE ?", "%"+search+"%").
 				Or("LOWER(product_price) LIKE ?", "%"+search+"%").
+				Or("LOWER(product_sold) LIKE ?", "%"+search+"%").
 				Or("LOWER(product_date) LIKE ?", "%"+search+"%").
 				Or("LOWER(product_time) LIKE ?", "%"+search+"%"),
 		)

@@ -32,6 +32,7 @@ type UpdateProductRequest struct {
 	ProductTime        string  `json:"product_time" validate:"required"`
 	ProductDate        string  `json:"product_date" validate:"required"`
 	ProductPrice       float64 `json:"product_price" validate:"required"`
+	ProductSold        int     `json:"product_sold" validate:"required"`
 	ProductDescription string  `json:"product_description" validate:"required"`
 	ProductCategory    string  `json:"product_category" validate:"required"`
 	ProductQuantity    int     `json:"product_quantity" validate:"required"`

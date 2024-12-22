@@ -9,6 +9,7 @@ type Product struct {
 	ProductTime           string    `json:"product_time"`
 	ProductDate           string    `json:"product_date"`
 	ProductPrice          float64   `json:"product_price"`
+	ProductSold           int       `json:"product_sold"`
 	ProductDescription    string    `json:"product_description"`
 	ProductCategory       string    `json:"product_category"`
 	ProductQuantity       int       `json:"product_quantity"`

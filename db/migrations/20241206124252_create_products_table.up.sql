@@ -7,6 +7,7 @@ CREATE TABLE IF NOT EXISTS products (
     product_time TIME NOT NULL,
     product_date DATE NOT NULL,
     product_price DECIMAL(13, 2) NOT NULL,
+    product_sold int NOT NULL DEFAULT 0,
     product_description TEXT NOT NULL,
     product_quantity INT NOT NULL,
     product_type ENUM('available', 'unavailable') NOT NULL,
