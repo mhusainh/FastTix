@@ -163,7 +163,11 @@ func (s *paymentService) HandleMidtransNotification(ctx context.Context, notif m
 		if err := s.transactionRepository.Update(ctx, trans); err != nil {
 			return err
 		}
-		if err := s.sendTicketEmail(user.Email, product, user.FullName, orderID); err != nil {
+		product.ProductQuantity = product.ProductQuantity - trans.TransactionQuantity
+		if err := s.productRepository.Update(ctx, product); err != nil {
+			return err
+		}
+		if err := s.sendTicketEmail(user.Email, product, user.FullName, orderID, trans); err != nil {
 			return err
 		}
 		// Send success email
@@ -196,7 +200,7 @@ func (s *paymentService) sendPaymentSuccessEmail(email string, product *entity.P
 
 	return s.sendEmail(email, subject, body)
 }
-func (s *paymentService) sendTicketEmail(email string, product *entity.Product, fullName string, orderID string) error {
+func (s *paymentService) sendTicketEmail(email string, product *entity.Product, fullName string, orderID string, transaction *entity.Transaction) error {
 	templatePath := "./templates/email/ticket.html"
 	log.Println("Parsing template:", templatePath)
 
@@ -248,7 +252,7 @@ func (s *paymentService) sendTicketEmail(email string, product *entity.Product, 
 		ProductName:     product.ProductName,
 		ProductCategory: product.ProductCategory,
 		ProductDate:     product.ProductDate,
-		ProductPrice:    product.ProductPrice,
+		ProductPrice:    transaction.TransactionAmount,
 		ProductTime:     product.ProductTime,
 		ProductLocation: product.ProductAddress,
 		ProductID:       product.ID,
@@ -322,5 +326,6 @@ func (s *paymentService) HandleCheckinNotification(ctx context.Context, req dto.
 	if err := s.transactionRepository.Update(ctx, trans); err != nil {
 		return err
 	}
+
 	return nil
 }

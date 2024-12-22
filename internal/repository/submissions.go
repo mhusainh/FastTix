@@ -27,26 +27,34 @@ func NewSubmissionRepository(db *gorm.DB) SubmissionRepository {
 
 func (r *submissionRepository) GetAll(ctx context.Context, req dto.GetAllProductsRequest) ([]entity.Product, error) {
 	result := make([]entity.Product, 0)
-	allowedStatus := []string{"pending", "unpaid"}
-	query := r.db.WithContext(ctx)
+	allowedStatus := []string{"pending", "unpaid"} // Hanya "pending" dan "unpaid"
+
+	query := r.db.WithContext(ctx).Where("product_status IN ?", allowedStatus) // Tetap berlaku untuk semua kondisi
+
 	if req.Search != "" {
 		search := strings.ToLower(req.Search)
-		query = query.Where("product_status IN ? AND LOWER(product_name) LIKE ?", allowedStatus, "%"+search+"%").
-			Or("product_status IN ? AND LOWER(product_category) LIKE ?", allowedStatus, "%"+search+"%").
-			Or("product_status IN ? AND LOWER(product_address) LIKE ?", allowedStatus, "%"+search+"%").
-			Or("product_status IN ? AND LOWER(product_price) LIKE ?", allowedStatus, "%"+search+"%").
-			Or("product_status IN ? AND LOWER(product_date) LIKE ?", allowedStatus, "%"+search+"%").
-			Or("product_status IN ? AND LOWER(product_time) LIKE ?", allowedStatus, "%"+search+"%")
+		query = query.Where(
+			r.db.Where("LOWER(product_name) LIKE ?", "%"+search+"%").
+				Or("LOWER(product_category) LIKE ?", "%"+search+"%").
+				Or("LOWER(product_address) LIKE ?", "%"+search+"%").
+				Or("LOWER(product_price) LIKE ?", "%"+search+"%").
+				Or("LOWER(product_date) LIKE ?", "%"+search+"%").
+				Or("LOWER(product_time) LIKE ?", "%"+search+"%"),
+		)
 	}
+
 	if req.Sort != "" && req.Order != "" {
 		query = query.Order(req.Sort + " " + req.Order)
 	}
+
 	if req.Page != 0 && req.Limit != 0 {
 		query = query.Offset((req.Page - 1) * req.Limit).Limit(req.Limit)
 	}
+
 	if err := query.Find(&result).Error; err != nil {
 		return nil, err
 	}
+
 	return result, nil
 }
 
