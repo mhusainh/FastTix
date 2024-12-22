@@ -24,6 +24,7 @@ type SubmissionService interface {
 	Approval(ctx context.Context, req dto.UpdateProductStatusRequest, submission *entity.Product, user *entity.User) (*entity.Product, error)
 	Cancel(ctx context.Context, submission *entity.Product, req dto.GetProductByIDRequest) error
 	HandleMidtransNotification(ctx context.Context, notif map[string]interface{}) error
+	UpdatePictureURL(ctx context.Context, req dto.GetProductByIDRequest, pictureURL string) error
 }
 
 type submissionService struct {
@@ -291,4 +292,13 @@ func (s *submissionService) HandleMidtransNotification(ctx context.Context, noti
 	}
 
 	return nil
+}
+
+func (s *submissionService) UpdatePictureURL(ctx context.Context, req dto.GetProductByIDRequest, pictureURL string) error {
+	submisstion, err := s.submissionRepository.GetById(ctx, req.ID)
+	if err != nil {
+		return err
+	}
+	submisstion.ProductImage = pictureURL
+	return s.submissionRepository.Update(ctx, submisstion)
 }

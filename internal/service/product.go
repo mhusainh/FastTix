@@ -43,3 +43,4 @@ func (s *productService) GetByUserId(ctx context.Context, req dto.GetProductByUs
 func (s *productService) Update(ctx context.Context, product *entity.Product) error {
 	return s.productRepository.Update(ctx, product)
 }
+

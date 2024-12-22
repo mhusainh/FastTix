@@ -2,7 +2,10 @@ package handler
 
 import (
 	"fmt"
+	"io"
+	"mime/multipart"
 	"net/http"
+	"os"
 
 	"github.com/labstack/echo/v4"
 	"github.com/mhusainh/FastTix/internal/http/dto"
@@ -238,16 +241,15 @@ func (h *SubmissionHandler) ApprovalSubmission(ctx echo.Context) error {
 		return ctx.JSON(http.StatusInternalServerError, response.ErrorResponse(http.StatusInternalServerError, err.Error()))
 	}
 
-	
 	if Submission.ProductStatus != "pending" {
 		return ctx.JSON(http.StatusBadRequest, response.ErrorResponse(http.StatusBadRequest, "Pengajuan ini sudah tidak dapat diapprove karena sudah diterima atau ditolak oleh admin"))
 	}
-	
+
 	user, err := h.userService.GetById(ctx.Request().Context(), Submission.UserID)
 	if err != nil {
 		return ctx.JSON(http.StatusInternalServerError, response.ErrorResponse(http.StatusInternalServerError, err.Error()))
 	}
-	
+
 	submission, err := h.submissionService.Approval(ctx.Request().Context(), m, Submission, user)
 	if err != nil {
 		return ctx.JSON(http.StatusInternalServerError, response.ErrorResponse(http.StatusInternalServerError, err.Error()))
@@ -312,4 +314,59 @@ func (h SubmissionHandler) CancelSubmission(ctx echo.Context) error {
 	}
 
 	return ctx.JSON(http.StatusOK, response.SuccessResponse("Successfully cancel a submission", nil))
+}
+
+func saveUploadedFile(file *multipart.FileHeader, path string) error {
+	// Open the uploaded file.
+	src, err := file.Open()
+	if err != nil {
+		return err
+	}
+	defer src.Close()
+
+	// Create a destination file for the uploaded content.
+	dst, err := os.Create(path)
+	if err != nil {
+		return err
+	}
+	defer dst.Close()
+
+	// Copy the uploaded content to the destination file.
+	if _, err = io.Copy(dst, src); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (h *SubmissionHandler) UploadPicture(ctx echo.Context) error {
+	var req dto.GetProductByIDRequest
+
+	if err := ctx.Bind(&req); err != nil {
+		return ctx.JSON(http.StatusBadRequest, response.ErrorResponse(http.StatusBadRequest, err.Error()))
+	}
+
+	file, err := ctx.FormFile("image")
+	if err != nil {
+		return ctx.JSON(http.StatusBadRequest, response.ErrorResponse(http.StatusBadRequest, err.Error()))
+	}
+
+	// Define the file path to save the uploaded image.
+	pathImage := "path/to/your/project-profile/images" + file.Filename
+
+	// Save the uploaded file to the specified path.
+	if err := saveUploadedFile(file, pathImage); err != nil {
+		return ctx.JSON(http.StatusInternalServerError, response.ErrorResponse(http.StatusInternalServerError, err.Error()))
+	}
+
+	// Construct the URL for the saved picture.
+	baseURL := "http://localhost:8080"
+	pictureURL := baseURL + "/images/" + file.Filename
+
+	// Update the user's profile with the picture URL using the user service.
+	if err := h.submissionService.UpdatePictureURL(ctx.Request().Context(), req, pictureURL); err != nil {
+		return ctx.JSON(http.StatusInternalServerError, response.ErrorResponse(http.StatusInternalServerError, err.Error()))
+	}
+
+	return ctx.JSON(http.StatusOK, response.SuccessResponse("Successfully upload picture", pictureURL))
 }
