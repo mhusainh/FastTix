@@ -360,7 +360,7 @@ func (h *SubmissionHandler) UploadPicture(ctx echo.Context) error {
 	}
 
 	// Construct the URL for the saved picture.
-	baseURL := "http://localhost:8080"
+	baseURL := "http://localhost:8080/api/v1"
 	pictureURL := baseURL + "/images/" + file.Filename
 
 	// Update the user's profile with the picture URL using the user service.
