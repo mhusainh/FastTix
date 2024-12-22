@@ -23,6 +23,7 @@ type UserService interface {
 	VerifyEmail(ctx context.Context, req dto.VerifyEmailRequest) error
 	GetAll(ctx context.Context) ([]entity.User, error)
 	GetById(ctx context.Context, id int64) (*entity.User, error)
+	GetByIdByUser(ctx context.Context, id int64) (dto.GetUserByIDByUserRequest, error)
 	Update(ctx context.Context, req dto.UpdateUserRequest) error
 	Delete(ctx context.Context, user *entity.User) error
 	ResetPassword(ctx context.Context, req dto.ResetPasswordRequest) error
@@ -145,6 +146,18 @@ func (s *userService) GetById(ctx context.Context, id int64) (*entity.User, erro
 	return s.userRepository.GetById(ctx, id)
 }
 
+func (s *userService) GetByIdByUser(ctx context.Context, id int64) (dto.GetUserByIDByUserRequest, error) {
+	user, err := s.userRepository.GetById(ctx, id)
+	if err != nil {
+		return dto.GetUserByIDByUserRequest{}, err
+	}
+	return dto.GetUserByIDByUserRequest{
+		ID:       user.ID,
+		FullName: user.FullName,
+		Gender:   user.Gender,
+		Email:    user.Email,
+	}, nil
+}
 func (s *userService) Update(ctx context.Context, req dto.UpdateUserRequest) error {
 	user, err := s.userRepository.GetById(ctx, req.ID)
 	if err != nil {

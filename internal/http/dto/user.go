@@ -30,9 +30,16 @@ type GetUserByIDRequest struct {
 	ID int64 `param:"id" validate:"required"`
 }
 
+type GetUserByIDByUserRequest struct {
+	ID                 int64  `param:"id" validate:"required"`
+	FullName           string `json:"full_name" validate:"required"`
+	Gender             string `json:"gender" validate:"required"`
+	Email              string `json:"email" validate:"required"`
+}
+
 type ResetPasswordRequest struct {
-	Token              string `param:"token" validate:"required"`
-	Password           string `json:"password" validate:"required"`
+	Token    string `param:"token" validate:"required"`
+	Password string `json:"password" validate:"required"`
 }
 
 type RequestResetPassword struct {
