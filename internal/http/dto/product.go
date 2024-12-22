@@ -40,6 +40,11 @@ type UpdateProductRequest struct {
 	UserID             int64   `json:"user_id" validate:"required"`
 }
 
+type UpdateProductStatusRequest struct {
+	ID     int64 `param:"id" validate:"required"`
+	Status string `param:"status" validate:"required"`
+}
+
 type DeleteProductRequest struct {
 	ID int64 `param:"id" validate:"required"`
 }

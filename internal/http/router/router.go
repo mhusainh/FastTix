@@ -123,14 +123,8 @@ func PrivateRoutes(
 		},
 		{
 			Method:  http.MethodPut,
-			Path:    "/submissions/:id/approve",
-			Handler: submissionHandler.ApproveSubmission,
-			Roles:   adminOnly,
-		},
-		{
-			Method:  http.MethodPut,
-			Path:    "/submissions/:id/reject",
-			Handler: submissionHandler.RejectSubmission,
+			Path:    "/submissions/:id/:status",
+			Handler: submissionHandler.ApprovalSubmission,
 			Roles:   adminOnly,
 		},
 		{

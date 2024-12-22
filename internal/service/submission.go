@@ -18,11 +18,10 @@ import (
 type SubmissionService interface {
 	GetAll(ctx context.Context, req dto.GetAllProductsRequest) ([]entity.Product, error)
 	GetById(ctx context.Context, id int64) (*entity.Product, error)
-	GetByUserId(ctx context.Context, req dto.GetProductByUserIDRequest, user *entity.User								) ([]entity.Product, error)
+	GetByUserId(ctx context.Context, req dto.GetProductByUserIDRequest, user *entity.User) ([]entity.Product, error)
 	Create(ctx context.Context, req dto.CreateProductRequest, t dto.CreateTransactionRequest, user *entity.User) (*entity.Product, error)
 	UpdateByUser(ctx context.Context, req dto.UpdateProductRequest, user *entity.User, submission *entity.Product) (*entity.Product, error)
-	Approve(ctx context.Context, submission *entity.Product) (*entity.Product, error)
-	Reject(ctx context.Context, submission *entity.Product) (*entity.Product, error)
+	Approval(ctx context.Context, req dto.UpdateProductStatusRequest, submission *entity.Product, user *entity.User) (*entity.Product, error)
 	Cancel(ctx context.Context, submission *entity.Product, req dto.GetProductByIDRequest) error
 	HandleMidtransNotification(ctx context.Context, notif map[string]interface{}) error
 }
@@ -171,13 +170,48 @@ func (s *submissionService) UpdateByUser(ctx context.Context, req dto.UpdateProd
 	return submission, s.submissionRepository.Update(ctx, submission)
 }
 
-func (s *submissionService) Approve(ctx context.Context, submission *entity.Product) (*entity.Product, error) {
-	submission.ProductStatus = "accepted"
-	return submission, s.submissionRepository.Update(ctx, submission)
-}
+func (s *submissionService) Approval(ctx context.Context, req dto.UpdateProductStatusRequest, submission *entity.Product, user *entity.User) (*entity.Product, error) {
+	if req.Status == "approve" {
+		submission.ProductStatus = "accepted"
+	} else if req.Status == "reject" {
+		submission.ProductStatus = "rejected"
+	} else {
+		return nil, errors.New("invalid status")
+	}
 
-func (s *submissionService) Reject(ctx context.Context, submission *entity.Product) (*entity.Product, error) {
-	submission.ProductStatus = "rejected"
+	templatePath := "./templates/email/approval.html"
+	tmpl, err := template.ParseFiles(templatePath)
+	if err != nil {
+		return nil, err
+	}
+
+	var ReplacerEmail = struct {
+		Status string
+	}{
+		Status: submission.ProductStatus,
+	}
+
+	var body bytes.Buffer
+	if err := tmpl.Execute(&body, ReplacerEmail); err != nil {
+		return nil, err
+	}
+
+	m := gomail.NewMessage()
+	m.SetHeader("From", s.cfg.SMTPConfig.Username)
+	m.SetHeader("To", user.Email)
+	m.SetHeader("Subject", "Fast Tix : Approval !")
+	m.SetBody("text/html", body.String())
+
+	d := gomail.NewDialer(
+		s.cfg.SMTPConfig.Host,
+		s.cfg.SMTPConfig.Port,
+		s.cfg.SMTPConfig.Username,
+		s.cfg.SMTPConfig.Password,
+	)
+
+	if err := d.DialAndSend(m); err != nil {
+		panic(err)
+	}
 	return submission, s.submissionRepository.Update(ctx, submission)
 }
 

@@ -225,9 +225,10 @@ func (h *SubmissionHandler) UpdateSubmissionByUser(ctx echo.Context) error {
 	return ctx.JSON(http.StatusOK, response.SuccessResponse("Successfully update a submission", submission))
 }
 
-func (h *SubmissionHandler) ApproveSubmission(ctx echo.Context) error {
+func (h *SubmissionHandler) ApprovalSubmission(ctx echo.Context) error {
 	var req dto.GetProductByIDRequest
 	var n dto.CreateNotificationRequest
+	var m dto.UpdateProductStatusRequest
 
 	if err := ctx.Bind(&req); err != nil {
 		return ctx.JSON(http.StatusBadRequest, response.ErrorResponse(http.StatusBadRequest, err.Error()))
@@ -238,55 +239,29 @@ func (h *SubmissionHandler) ApproveSubmission(ctx echo.Context) error {
 		return ctx.JSON(http.StatusInternalServerError, response.ErrorResponse(http.StatusInternalServerError, err.Error()))
 	}
 
+	
 	if Submission.ProductStatus != "pending" {
 		return ctx.JSON(http.StatusBadRequest, response.ErrorResponse(http.StatusBadRequest, "Pengajuan ini sudah tidak dapat diapprove karena sudah diterima atau ditolak oleh admin"))
 	}
-
-	submission, err := h.submissionService.Approve(ctx.Request().Context(), Submission)
+	
+	user, err := h.userService.GetById(ctx.Request().Context(), Submission.UserID)
+	if err != nil {
+		return ctx.JSON(http.StatusInternalServerError, response.ErrorResponse(http.StatusInternalServerError, err.Error()))
+	}
+	
+	submission, err := h.submissionService.Approval(ctx.Request().Context(), m, Submission, user)
 	if err != nil {
 		return ctx.JSON(http.StatusInternalServerError, response.ErrorResponse(http.StatusInternalServerError, err.Error()))
 	}
 
-	n.Message = "accept"
+	n.Message = submission.ProductStatus
 
 	err = h.notificationService.SendNotificationSubmission(ctx.Request().Context(), n, submission)
 	if err != nil {
 		return ctx.JSON(http.StatusInternalServerError, response.ErrorResponse(http.StatusInternalServerError, err.Error()))
 	}
 
-	return ctx.JSON(http.StatusOK, response.SuccessResponse("Successfully approve a submission", submission))
-}
-
-func (h *SubmissionHandler) RejectSubmission(ctx echo.Context) error {
-	var req dto.GetProductByIDRequest
-	var n dto.CreateNotificationRequest
-
-	if err := ctx.Bind(&req); err != nil {
-		return ctx.JSON(http.StatusBadRequest, response.ErrorResponse(http.StatusBadRequest, err.Error()))
-	}
-
-	submission, err := h.submissionService.GetById(ctx.Request().Context(), req.ID)
-	if err != nil {
-		return ctx.JSON(http.StatusInternalServerError, response.ErrorResponse(http.StatusInternalServerError, err.Error()))
-	}
-
-	if submission.ProductStatus != "pending" {
-		return ctx.JSON(http.StatusBadRequest, response.ErrorResponse(http.StatusBadRequest, "Pengajuan ini sudah tidak dapat direject karena sudah diterima atau ditolak oleh admin"))
-	}
-
-	submission, err = h.submissionService.Reject(ctx.Request().Context(), submission)
-	if err != nil {
-		return ctx.JSON(http.StatusInternalServerError, response.ErrorResponse(http.StatusInternalServerError, err.Error()))
-	}
-
-	n.Message = "reject"
-
-	err = h.notificationService.SendNotificationSubmission(ctx.Request().Context(), n, submission)
-	if err != nil {
-		return ctx.JSON(http.StatusInternalServerError, response.ErrorResponse(http.StatusInternalServerError, err.Error()))
-	}
-
-	return ctx.JSON(http.StatusOK, response.SuccessResponse("Successfully reject a submission", submission))
+	return ctx.JSON(http.StatusOK, response.SuccessResponse("Successfully approval a submission", submission))
 }
 
 func (h SubmissionHandler) CancelSubmission(ctx echo.Context) error {
