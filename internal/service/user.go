@@ -231,7 +231,7 @@ func (s *userService) RequestResetPassword(ctx context.Context, email string) er
 		return err
 	}
 
-	templatePath := "./templates/email/verify-email.html"
+	templatePath := "./templates/email/reset-password.html"
 	tmpl, err := template.ParseFiles(templatePath)
 	if err != nil {
 		return err
