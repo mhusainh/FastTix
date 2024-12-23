@@ -3,8 +3,8 @@ package database
 import (
 	"fmt"
 
-	"gorm.io/driver/mysql"
 	"github.com/mhusainh/FastTix/config"
+	"gorm.io/driver/mysql"
 	"gorm.io/gorm"
 	"gorm.io/gorm/logger"
 )

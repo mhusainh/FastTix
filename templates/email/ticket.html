@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Ticket Purchase Confirmation</title>
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        background-color: #f9f9f9;
+        margin: 0;
+        padding: 0;
+      }
+      .email-container {
+        width: 100%;
+        max-width: 600px;
+        margin: 0 auto;
+        background-color: #ffffff;
+        padding: 20px;
+        border-radius: 8px;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+      }
+      .header {
+        text-align: center;
+        background-color: #4caf50;
+        color: #ffffff;
+        padding: 20px;
+        border-radius: 8px 8px 0 0;
+      }
+      .header h1 {
+        margin: 0;
+        font-size: 24px;
+      }
+      .content {
+        padding: 20px;
+      }
+      .content h2 {
+        color: #333333;
+      }
+      .details {
+        background-color: #f4f4f4;
+        padding: 15px;
+        border-radius: 8px;
+        margin-bottom: 20px;
+      }
+      .details p {
+        margin: 5px 0;
+        font-size: 14px;
+        color: #555555;
+      }
+      .footer {
+        text-align: center;
+        padding: 15px;
+        font-size: 14px;
+        color: #777777;
+      }
+      .footer a {
+        color: #4caf50;
+        text-decoration: none;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="email-container">
+      <!-- Header Section -->
+      <div class="header">
+        <h1>Ticket Purchase Confirmation</h1>
+      </div>
+
+      <!-- Content Section -->
+      <div class="content">
+        <h2>Hello, {{ .Name }}</h2>
+        <p>Thank you for purchasing a ticket to our event! Here are the details:</p>
+
+        <!-- Event Details -->
+        <div class="details">
+          <p><strong>Event Name:</strong> {{ .ProductName }}</p>
+          <p><strong>Category:</strong> {{ .ProductCategory }}</p>
+          <p><strong>Date:</strong> {{ .ProductDate }}</p>
+          <p><strong>Time:</strong> {{ .ProductTime }}</p>
+          <p><strong>Location:</strong> {{ .ProductLocation }}</p>
+          <p><strong>Ticket ID:</strong> {{ .ProductID }}</p>
+          <p><strong>Total Price:</strong> {{ .ProductPrice  }}</p>
+        </div>
+
+        <div class="qrcode-section">
+          <p><strong>Scan this QR code for quick check-in:</strong></p>
+          <img src="cid:{{ .QRCodeCID }}" alt="QR Code" />
+        </div>
+
+
+        <p>Please bring this email with you to the event for verification purposes. We look forward to seeing you there!</p>
+      </div>
+
+      <!-- Footer Section -->
+      <div class="footer">
+        <p>If you have any questions about your purchase, feel free to contact us at <a href="mailto:iiwandila01@gmail.com">support@event.com</a>.</p>
+        <p><strong>Warm regards,</strong><br />The Event Team</p>
+      </div>
+    </div>
+  </body>
+</html>
