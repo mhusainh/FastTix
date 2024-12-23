@@ -1,91 +1,46 @@
-package repository
+package service
 
 import (
 	"context"
-	"strings"
 
 	"github.com/mhusainh/FastTix/internal/entity"
 	"github.com/mhusainh/FastTix/internal/http/dto"
-	"gorm.io/gorm"
+	"github.com/mhusainh/FastTix/internal/repository"
 )
 
-type ProductRepository interface {
+type ProductService interface {
 	GetAll(ctx context.Context, req dto.GetAllProductsRequest) ([]entity.Product, error)
 	GetById(ctx context.Context, id int64) (*entity.Product, error)
 	GetByUserId(ctx context.Context, req dto.GetProductByUserIDRequest) ([]entity.Product, error)
-	GetByName(ctx context.Context, name string) (*entity.Product, error)
 	Update(ctx context.Context, product *entity.Product) error
 	Delete(ctx context.Context, product *entity.Product) error
 }
 
-type productRepository struct {
-	db *gorm.DB
+type productService struct {
+	productRepository repository.ProductRepository
 }
 
-func NewProductRepository(db *gorm.DB) ProductRepository {
-	return &productRepository{db}
+func NewProductService(productRepository repository.ProductRepository) ProductService {
+	return &productService{productRepository}
 }
 
-func (r *productRepository) GetAll(ctx context.Context, req dto.GetAllProductsRequest) ([]entity.Product, error) {
-	products := make([]entity.Product, 0)
-	query := r.db.WithContext(ctx)
-	if req.Search != "" {
-		search := strings.ToLower(req.Search)
-		query = query.Where("LOWER(product_name) LIKE ?", "%"+search+"%").
-			Or("LOWER(product_category) LIKE ?", "%"+search+"%").
-			Or("LOWER(product_address) LIKE ?", "%"+search+"%").
-			Or("LOWER(product_price) LIKE ?", "%"+search+"%").
-			Or("LOWER(product_date) LIKE ?", "%"+search+"%").
-			Or("LOWER(product_time) LIKE ?", "%"+search+"%")
-	}
-	if req.Sort != "" && req.Order != "" {
-		query = query.Order(req.Sort + " " + req.Order)
-	}
-	if req.Page != 0 && req.Limit != 0 {
-		query = query.Offset((req.Page - 1) * req.Limit).Limit(req.Limit)
-	}
-	if err := query.Find(&products).Error; err != nil {
-		return nil, err
-	}
-	return products, nil
+func (s *productService) GetAll(ctx context.Context, req dto.GetAllProductsRequest) ([]entity.Product, error) {
+	return s.productRepository.GetAll(ctx, req)
 }
 
-func (r *productRepository) GetById(ctx context.Context, id int64) (*entity.Product, error) {
-	result := new(entity.Product)
-	if err := r.db.WithContext(ctx).Where("id = ?", id).First(&result).Error; err != nil {
-		return nil, err
-	}
-	return result, nil
+func (s *productService) GetById(ctx context.Context, id int64) (*entity.Product, error) {
+	return s.productRepository.GetById(ctx, id)
 }
 
-func (r *productRepository) GetByName(ctx context.Context, name string) (*entity.Product, error) {
-	result := new(entity.Product)
-	if err := r.db.WithContext(ctx).Where("product_name = ?", name).First(&result).Error; err != nil {
-		return nil, err
-	}
-	return result, nil
+func (s *productService) Delete(ctx context.Context, product *entity.Product) error {
+	return s.productRepository.Delete(ctx, product)
 }
 
-func (r *productRepository) GetByUserId(ctx context.Context, req dto.GetProductByUserIDRequest) ([]entity.Product, error) {
-	products := make([]entity.Product, 0)
-	query := r.db.WithContext(ctx).Where("user_id = ?", req.UserID)
-	if req.Order != "" {
-		query = query.Order("created_at " + req.Order)
-	}
-	if err := query.Find(&products).Error; err != nil {
-		return nil, err
-	}
-	return products, nil
+func (s *productService) GetByUserId(ctx context.Context, req dto.GetProductByUserIDRequest) ([]entity.Product, error) {
+	return s.productRepository.GetByUserId(ctx, req)
 }
 
-func (r *productRepository) Create(ctx context.Context, product *entity.Product) error {
-	return r.db.WithContext(ctx).Create(&product).Error
+func (s *productService) Update(ctx context.Context, product *entity.Product) error {
+	return s.productRepository.Update(ctx, product)
 }
 
-func (r *productRepository) Update(ctx context.Context, product *entity.Product) error {
-	return r.db.WithContext(ctx).Save(&product).Error
-}
-
-func (r *productRepository) Delete(ctx context.Context, product *entity.Product) error {
-	return r.db.WithContext(ctx).Delete(&product).Error
-}
