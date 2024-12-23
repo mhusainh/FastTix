@@ -295,7 +295,7 @@ func (s *submissionService) HandleMidtransNotification(ctx context.Context, noti
 }
 
 func (s *submissionService) UpdatePictureURL(ctx context.Context, req dto.GetProductByIDRequest, pictureURL string) error {
-	submisstion, err := s.submissionRepository.GetById(ctx, req.ID)
+	submisstion, err := s.productRepository.GetById(ctx, req.ID)
 	if err != nil {
 		return err
 	}
