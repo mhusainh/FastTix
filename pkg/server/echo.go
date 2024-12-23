@@ -33,7 +33,7 @@ func NewServer(cfg *config.Config, publicRoutes, privateRoutes []route.Route) *S
 	}
 	if len(privateRoutes) > 0 {
 		for _, route := range privateRoutes {
-			v1.Add(route.Method, route.Path, route.Handler)
+			v1.Add(route.Method, route.Path, route.Handler, JWTMiddleware(cfg.JWTConfig.SecretKey), RBACMiddleware(route.Roles))
 		}
 	}
 	return &Server{e}
