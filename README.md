@@ -58,7 +58,7 @@ Proyek ini akan berlangsung selama 2 sprint (2 minggu) dengan penilaian secara b
 
 <!-- add picture readme md -->
 ![Figma](https://github.com/user-attachments/assets/26f766f5-dc17-491a-a1ed-24c34133ff37)
-![ERD](https://app.diagrams.net/?state=%7B%22ids%22:%5B%221Qr0zrk2Wx2L-7eyh0smh5tTRykwmsS2l%22%5D,%22action%22:%22open%22,%22userId%22:%22116514909210449483874%22,%22resourceKeys%22:%7B%7D%7D)
+![ERD](https://github.com/user-attachments/assets/22e2d880-a8bd-472c-8c53-6ee0822d2186)
 
 
 <!-- add link url -->
