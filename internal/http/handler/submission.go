@@ -231,7 +231,7 @@ func (h *SubmissionHandler) ApprovalSubmission(ctx echo.Context) error {
 	var req dto.GetProductByIDRequest
 	var n dto.CreateNotificationRequest
 	var m dto.UpdateProductStatusRequest
-
+	status := ctx.Param("status")
 	if err := ctx.Bind(&req); err != nil {
 		return ctx.JSON(http.StatusBadRequest, response.ErrorResponse(http.StatusBadRequest, err.Error()))
 	}
@@ -249,7 +249,7 @@ func (h *SubmissionHandler) ApprovalSubmission(ctx echo.Context) error {
 	if err != nil {
 		return ctx.JSON(http.StatusInternalServerError, response.ErrorResponse(http.StatusInternalServerError, err.Error()))
 	}
-
+	m.Status = status
 	submission, err := h.submissionService.Approval(ctx.Request().Context(), m, Submission, user)
 	if err != nil {
 		return ctx.JSON(http.StatusInternalServerError, response.ErrorResponse(http.StatusInternalServerError, err.Error()))
@@ -361,7 +361,7 @@ func (h *SubmissionHandler) UploadPicture(ctx echo.Context) error {
 
 	// Construct the URL for the saved picture.
 	baseURL := "http://localhost:8080/api/v1"
-	pictureURL := baseURL + "/images/" + file.Filename
+	pictureURL := baseURL + "/image/" + file.Filename
 
 	// Update the user's profile with the picture URL using the user service.
 	if err := h.submissionService.UpdatePictureURL(ctx.Request().Context(), req, pictureURL); err != nil {
