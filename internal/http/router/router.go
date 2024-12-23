@@ -190,13 +190,13 @@ func PrivateRoutes(
 			Method:  http.MethodGet,
 			Path:    "/users/profile",
 			Handler: userHandler.GetProfile,
-			Roles:   userOnly,
+			Roles:   allRoles,
 		},
 		{
 			Method:  http.MethodPut,
 			Path:    "/users/profile",
 			Handler: userHandler.UpdateUser,
-			Roles:   userOnly,
+			Roles:   allRoles,
 		},
 		{
 			Method:  http.MethodGet,
