@@ -99,7 +99,6 @@ func (h *SubmissionHandler) CreateSubmission(ctx echo.Context) error {
 	if err := ctx.Bind(&req); err != nil {
 		return ctx.JSON(http.StatusBadRequest, response.ErrorResponse(http.StatusBadRequest, err.Error()))
 	}
-	fmt.Println(req.ProductName)
 	userID, err := h.tokenService.GetUserIDFromToken(ctx)
 	if err != nil {
 		return ctx.JSON(http.StatusUnauthorized, response.ErrorResponse(http.StatusUnauthorized, err.Error()))
@@ -116,7 +115,6 @@ func (h *SubmissionHandler) CreateSubmission(ctx echo.Context) error {
 	if err != nil {
 		return ctx.JSON(http.StatusInternalServerError, response.ErrorResponse(http.StatusInternalServerError, err.Error()))
 	}
-	fmt.Println(submission.OrderID)
 	if submission.ProductPrice != 0 {
 		transaction, err := h.transactionService.GetByOrderID(ctx.Request().Context(), submission.OrderID)
 		if err != nil {

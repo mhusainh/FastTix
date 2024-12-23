@@ -58,7 +58,6 @@ func (h WebhookHandler) MidtransWebhook(ctx echo.Context) error {
 func (h WebhookHandler) CheckinWebhook(ctx echo.Context) error {
 	var req dto.CheckinWebhook
 	OrderId := ctx.Param("order_id")
-	fmt.Println(OrderId)
 	req.OrderID = OrderId
 	if err := ctx.Bind(&req); err != nil {
 		return ctx.JSON(http.StatusBadRequest, response.ErrorResponse(http.StatusBadRequest, err.Error()))
@@ -67,7 +66,6 @@ func (h WebhookHandler) CheckinWebhook(ctx echo.Context) error {
 	if err != nil {
 		return ctx.JSON(http.StatusInternalServerError, response.ErrorResponse(http.StatusInternalServerError, err.Error()))
 	}
-	fmt.Println(GetTransaction.CheckIn)
 	if GetTransaction.TransactionStatus != "success" {
 		return ctx.JSON(http.StatusBadRequest, response.ErrorResponse(http.StatusBadRequest, "Transaction not success"))
 	}

@@ -62,9 +62,6 @@ func (s *paymentService) CreatePayment(ctx context.Context, product *entity.Prod
 		return nil, errors.New("Failed to send payment confirmation email")
 	}
 
-	fmt.Println(snapResponse.RedirectURL)
-
-	// Return JSON response
 	return map[string]interface{}{
 		"message":     "Payment created successfully",
 		"redirectURL": snapResponse.RedirectURL,
