@@ -1,6 +1,7 @@
 package handler
 
 import (
+	"fmt"
 	"io"
 	"mime/multipart"
 	"net/http"
@@ -352,9 +353,10 @@ func (h *SubmissionHandler) UploadPicture(ctx echo.Context) error {
 	}
 
 	// Construct the URL for the saved picture.
-	baseURL := "http://localhost:8080/api/v1"
+	baseURL := "http://localhost:" + os.Getenv("PORT") + "/api/v1"
 	pictureURL := baseURL + "/image/" + file.Filename
 
+	fmt.Println(os.Getenv("PORT"))
 	// Update the user's profile with the picture URL using the user service.
 	if err := h.submissionService.UpdatePictureURL(ctx.Request().Context(), req, pictureURL); err != nil {
 		return ctx.JSON(http.StatusInternalServerError, response.ErrorResponse(http.StatusInternalServerError, err.Error()))
