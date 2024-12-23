@@ -2,7 +2,7 @@
 
 #Fast Tix
 
-By : Golang - Kelompok 3 
+By : Golang - Kelompok 4 
 Anggota :
 - [x] Mahmudi Husain Hasbullah
 - [x] Muhammad Ridwan
