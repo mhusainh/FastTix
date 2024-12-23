@@ -2,9 +2,15 @@ BEGIN;
 
 CREATE TABLE IF NOT EXISTS transactions (
     id INT PRIMARY KEY AUTO_INCREMENT,
-    transaction_status ENUM('pending', 'gagal', 'sukses') NOT NULL,
+    transaction_status ENUM('pending', 'failed', 'success') NOT NULL,
+    transaction_quantity INT NOT NULL,
+    transaction_amount DECIMAL(13, 2) NOT NULL,
+    transaction_type ENUM('ticket', 'submission') NOT NULL,
+    order_id VARCHAR(255) NOT NULL UNIQUE,
     user_id INT NOT NULL,
     product_id INT NOT NULL,
+    verification_token VARCHAR(255) NOT NULL,
+    check_in INT NOT NULL DEFAULT 0,
     CONSTRAINT fk_user_transactions FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE ON UPDATE CASCADE,
     CONSTRAINT fk_product_transactions FOREIGN KEY (product_id) REFERENCES products(id) ON DELETE CASCADE ON UPDATE CASCADE,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
