@@ -113,6 +113,7 @@ func (s *submissionService) Create(ctx context.Context, req dto.CreateProductReq
 		ProductStatus:      req.ProductStatus,
 		UserID:             user.ID,
 		OrderID:            req.OrderID,
+		ProductImage:       "http://localhost:8080/api/v1/image/default.png",
 	}
 
 	if err := s.submissionRepository.Create(ctx, submission); err != nil {
@@ -168,7 +169,7 @@ func (s *submissionService) UpdateByUser(ctx context.Context, req dto.UpdateProd
 	if req.ProductType != "" {
 		submission.ProductType = req.ProductType
 	}
-	return submission, s.submissionRepository.Update(ctx, submission)
+	return submission, s.productRepository.Update(ctx, submission)
 }
 
 func (s *submissionService) Approval(ctx context.Context, req dto.UpdateProductStatusRequest, submission *entity.Product, user *entity.User) (*entity.Product, error) {

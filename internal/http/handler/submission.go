@@ -1,7 +1,6 @@
 package handler
 
 import (
-	"fmt"
 	"io"
 	"mime/multipart"
 	"net/http"
@@ -197,7 +196,7 @@ func (h *SubmissionHandler) UpdateSubmissionByUser(ctx echo.Context) error {
 		return ctx.JSON(http.StatusInternalServerError, response.ErrorResponse(http.StatusInternalServerError, err.Error()))
 	}
 
-	submission, err := h.submissionService.GetById(ctx.Request().Context(), req.ID)
+	submission, err := h.productService.GetById(ctx.Request().Context(), req.ID)
 	if err != nil {
 		return ctx.JSON(http.StatusInternalServerError, response.ErrorResponse(http.StatusInternalServerError, err.Error()))
 	}
