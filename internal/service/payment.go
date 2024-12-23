@@ -212,7 +212,7 @@ func (s *paymentService) sendTicketEmail(email string, product *entity.Product, 
 		return err
 	}
 
-	qrData := fmt.Sprintf("https://00d6-139-195-122-235.ngrok-free.app/api/v1/checkin/%s", orderID)
+	qrData := fmt.Sprintf("http://localhost:8080/api/v1/checkin/%s", orderID)
 	qrBytes, err := s.generateQRCode(qrData)
 	if err != nil {
 		log.Printf("ERROR: Failed to generate QR code: %v", err)
