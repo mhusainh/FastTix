@@ -172,6 +172,8 @@ func (s *submissionService) UpdateByUser(ctx context.Context, req dto.UpdateProd
 }
 
 func (s *submissionService) Approval(ctx context.Context, req dto.UpdateProductStatusRequest, submission *entity.Product, user *entity.User) (*entity.Product, error) {
+	fmt.Println(req.Status)
+	fmt.Println("tes")
 	if req.Status == "approve" {
 		submission.ProductStatus = "accepted"
 	} else if req.Status == "reject" {

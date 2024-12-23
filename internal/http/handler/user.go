@@ -58,6 +58,8 @@ func (h *UserHandler) Register(ctx echo.Context) error {
 }
 
 func (h *UserHandler) GetUsers(ctx echo.Context) error {
+
+	
 	users, err := h.userService.GetAll(ctx.Request().Context())
 	if err != nil {
 		return ctx.JSON(http.StatusInternalServerError, response.ErrorResponse(http.StatusInternalServerError, err.Error()))
