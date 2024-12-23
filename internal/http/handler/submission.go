@@ -283,7 +283,7 @@ func (h SubmissionHandler) CancelSubmission(ctx echo.Context) error {
 		return ctx.JSON(http.StatusInternalServerError, response.ErrorResponse(http.StatusInternalServerError, err.Error()))
 	}
 
-	submission, err := h.submissionService.GetById(ctx.Request().Context(), req.ID)
+	submission, err := h.productService.GetById(ctx.Request().Context(), req.ID)
 	if err != nil {
 		return ctx.JSON(http.StatusInternalServerError, response.ErrorResponse(http.StatusInternalServerError, err.Error()))
 	}
@@ -292,13 +292,8 @@ func (h SubmissionHandler) CancelSubmission(ctx echo.Context) error {
 		return ctx.JSON(http.StatusUnauthorized, response.ErrorResponse(http.StatusUnauthorized, "Anda tidak memiliki hak untuk membatalkan pengajuan ini"))
 	}
 
-	if submission.ProductStatus != "pending" {
+	if submission.ProductStatus != "pending" && submission.ProductStatus != "unpaid" {
 		return ctx.JSON(http.StatusBadRequest, response.ErrorResponse(http.StatusBadRequest, "Pengajuan ini sudah tidak dapat dicancel karena sudah diterima atau ditolak oleh admin"))
-	}
-
-	submission, err = h.submissionService.GetById(ctx.Request().Context(), req.ID)
-	if err != nil {
-		return ctx.JSON(http.StatusInternalServerError, response.ErrorResponse(http.StatusInternalServerError, err.Error()))
 	}
 
 	err = h.submissionService.Cancel(ctx.Request().Context(), submission, req)
